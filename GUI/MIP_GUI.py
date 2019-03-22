@@ -4,7 +4,7 @@ import serial
 import sys
 from time import sleep
 from util import *
-
+from math import ceil
 #for UI
 from PyQt5 import QtWidgets, QtGui, QtCore
 from gui.MI_GUI_01 import Ui_MainWindow
@@ -33,7 +33,21 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         #window arrangement
         self.currentSetup = None
-
+        #module vars
+        self.moduleType = None
+        self.moduleL = 0 #potenciometro linear
+        self.moduleE = 0 #encoder linear
+        self.moduleT = 0 # ToF
+        self.moduleA = 0 # acelarometro
+        self.moduleE = 0 # extensometro
+        self.moduleH = 0 # Hall
+        #graphLists
+        self.moduleLList = []
+        self.moduleEList = []
+        self.moduleTList = []
+        self.moduleAList = []
+        self.moduleEList = []
+        self.moduleHList = []
         #configure serial connection
         self.serialConnection = serial.Serial()
         self.serialConnection.bytesize = serial.EIGHTBITS
@@ -46,6 +60,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.targetComConnectButton.clicked.connect(self.targetConnectionCB)
         #combo box Callback
         self.ui.targetComCB.activated[str].connect(self.onTargetComCBActivated)
+
 
     #COMMUNICATION
 
@@ -105,30 +120,67 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     #ALTERING GUI
 
     def addGraphs(self, string):
-        L = 0 #potenciometro linear
-        E = 0 #encoder linear
-        T = 0 # ToF
-        A = 0 # acelarometro
-        E = 0 # extensometro
-        H = 0 # Hall
-        for vars in string.split('-'):
-
         try:
+            self.moduleL = 0 #potenciometro linear
+            self.moduleE = 0 #encoder linear
+            self.moduleT = 0 # ToF
+            self.moduleA = 0 # acelarometro
+            self.moduleE = 0 # extensometro
+            self.moduleH = 0 # Hall
+            for vars in string.split('-'):
+                print(vars)
+                id = vars[0]
+                n = vars[1:]
+                print(id,n)
+                if(id == 'M'):
+                    self.moduleType = "Molas " + n
+                if(id == 'G'):
+                    self.moduleType = "Gerador " + n
+                if(id == 'L'):
+                    print(n)
+                    self.moduleL = int(n)
+                    positions = [(i, j) for i in range(ceil(self.moduleL / 2)) for j in range(2)]
+                    names = ["Potênciometro Linear " + str(pos) for pos in positions]
+                    for i in range(self.moduleL):
+                        self.moduleLList.append(PlotCanvas(names[i]))
+                if(id == 'E'):
+                    self.moduleE = int(n)
+                    for i in range(self.moduleE):
+                        self.moduleEList.append(PlotCanvas())
+                if(id == 'T'):
+                    self.moduleT = int(n)
+                    for i in range(self.moduleT):
+                        self.moduleTList.append(PlotCanvas())
+                if(id == 'A'):
+                    self.moduleA = int(n)
+                    name = "Acelarometro " + str((0,0))
+                    self.moduleAList.append(PlotCanvas(name))
+                if(id == 'E'):
+                    self.moduleE = int(n)
+                    for i in range(self.moduleE):
+                        self.moduleEList.append(PlotCanvas())
+                if(id == 'H'):
+                    self.moduleH = int(n)
+                    for i in range(self.moduleH):
+                        self.moduleHList.append(PlotCanvas())
             grid = QtWidgets.QGridLayout()
+            #TODO add bellow for general case
+            positions = [(j, i) for i in range(ceil(self.moduleL/2)) for j in range(2)]
+
+            for i, position in enumerate(positions):
+
+                grid.addWidget(self.moduleLList[i], *position)
+
             self.ui.graphFrame.setLayout(grid)
-            graph1 = PlotCanvas()
-            grid.addWidget(graph1, 0,0)
-            self.move(300, 150)
-            self.setWindowTitle('Calculator')
-            self.show()
         except Exception as err:
             print(str(err))
+
 class PlotCanvas(FigureCanvas):
 
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, name, parent=None,width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
-
+        self.name = name
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
 
@@ -142,7 +194,7 @@ class PlotCanvas(FigureCanvas):
         data = [random.random() for i in range(25)]
         ax = self.figure.add_subplot(111)
         ax.plot(data, 'r-')
-        ax.set_title('PyQt Matplotlib Example')
+        ax.set_title(self.name)
         self.draw()
 
 
