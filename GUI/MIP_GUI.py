@@ -1,4 +1,5 @@
 #for serial comms
+import threading
 import serial.tools.list_ports
 import serial
 import sys
@@ -7,14 +8,13 @@ from util import *
 from math import ceil
 #for UI
 from PyQt5 import QtWidgets, QtGui, QtCore
-from gui.MI_GUI_01 import Ui_MainWindow
+from gui.MI_GUI_02 import Ui_MainWindow
 
 #for plots
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
-import random
 
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -56,8 +56,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialConnection.timeout = 0.5
         self.serialConnection.baudrate = 500000
 
-        #button Callbacks
+        #targetComConnectButton Callback
         self.ui.targetComConnectButton.clicked.connect(self.targetConnectionCB)
+        #updateCOMButton CallBack
+        self.ui.updateCOMButton.clicked.connect(self.getCOMList)
         #combo box Callback
         self.ui.targetComCB.activated[str].connect(self.onTargetComCBActivated)
 
@@ -65,6 +67,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     #COMMUNICATION
 
     def getCOMList(self):
+        self.ui.targetComCB.clear()
         self.ui.targetComCB.addItems([comport.device for comport in serial.tools.list_ports.comports()])
 
     def targetConnectionCB(self):
@@ -74,22 +77,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.ui.targetComConnectButton.setText("connect")
         elif(self.serialCOM != None):
             if(self.establishConnection()):
-                sleep(2) #Wait 1s between connection and first contact (atleast 2 is necessary for arduino to get ready)
-                self.currentSetup = self.queryType()
-                if(self.currentSetup == 0):
-                    QtWidgets.QMessageBox(self, "Warning", "Connected but could not receive response from board")
-                    self.currentSetup = None
-                    self.closeConnetion()
-                else:
-                    # If connection is established set text as disconnect
-                    self.ui.targetComConnectButton.setText("disconnect")
-                    self.addGraphs(self.currentSetup)
+                # If connection is established set text as disconnect
+                self.ui.targetComConnectButton.setText("disconnect")
 
     def onTargetComCBActivated(self, text):
         if text != None:
             self.serialCOM = text
 
     def establishConnection(self):
+        #TODO Start serial listener thread here
         try:
             self.serialConnection.port = self.serialCOM
             self.serialConnection.open()
@@ -101,32 +97,21 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         except Exception as err:
             print(str(err))
     def closeConnetion(self):
+        #TODO Close serial listener thread here
         self.serialConnection.close()
         self.ui.connectionStatusLabel.setText("Connection Status: Offline")
-
-    def queryType(self):
-        try:
-            #send type request
-            self.serialConnection.write(stringToAscii('1\n'))            #receive type request
-            text_received = self.serialConnection.readline()
-            if(text_received == b''):
-                return 0
-            else:
-                text_received = text_received.decode('ascii')
-                return text_received[:-2] #removes /r/n from end of string
-        except Exception as err:
-            print(str(err))
 
     #ALTERING GUI
 
     def addGraphs(self, string):
+        #TODO FIX/ADD this when entry selection is added
         try:
             self.moduleL = 0 #potenciometro linear
             self.moduleE = 0 #encoder linear
-            self.moduleT = 0 # ToF
-            self.moduleA = 0 # acelarometro
-            self.moduleE = 0 # extensometro
-            self.moduleH = 0 # Hall
+            self.moduleT = 0 #ToF
+            self.moduleA = 0 #acelarometro
+            self.moduleE = 0 #extensometro
+            self.moduleH = 0 #Hall
             for vars in string.split('-'):
                 print(vars)
                 id = vars[0]
