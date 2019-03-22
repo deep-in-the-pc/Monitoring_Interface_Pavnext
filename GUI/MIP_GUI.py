@@ -49,13 +49,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.moduleEList = []
         self.moduleHList = []
         #configure serial connection
-        self.serialConnection = serial.Serial()
-        self.serialConnection.bytesize = serial.EIGHTBITS
-        self.serialConnection.parity = serial.PARITY_NONE
-        self.serialConnection.stopbits = serial.STOPBITS_ONE
-        self.serialConnection.timeout = 0.5
-        self.serialConnection.baudrate = 500000
-
+        self.serialListenerThread = serialThread(1, "SerialListener")
+        self.serialConnectionParameters = list()
+        self.serialConnectionParameters.append(serial.EIGHTBITS)
+        self.serialConnectionParameters.append(serial.PARITY_NONE)
+        self.serialConnectionParameters.append(serial.STOPBITS_ONE)
+        self.serialConnectionParameters.append(57600)
         #targetComConnectButton Callback
         self.ui.targetComConnectButton.clicked.connect(self.targetConnectionCB)
         #updateCOMButton CallBack
@@ -71,25 +70,25 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.targetComCB.addItems([comport.device for comport in serial.tools.list_ports.comports()])
 
     def targetConnectionCB(self):
-
-        if(self.serialConnection.is_open):
+        if self.serialListenerThread.is_alive():
             self.closeConnetion()
-            self.ui.targetComConnectButton.setText("connect")
+            self.ui.targetComConnectButton.setText("Connect")
         elif(self.serialCOM != None):
             if(self.establishConnection()):
                 # If connection is established set text as disconnect
-                self.ui.targetComConnectButton.setText("disconnect")
+                self.ui.targetComConnectButton.setText("Disconnect")
 
     def onTargetComCBActivated(self, text):
         if text != None:
             self.serialCOM = text
 
     def establishConnection(self):
-        #TODO Start serial listener thread here
         try:
-            self.serialConnection.port = self.serialCOM
-            self.serialConnection.open()
-            if(self.serialConnection.is_open):
+            self.serialListenerThread = serialThread(1, "SerialListener")
+            self.serialConnectionParameters.append(self.serialCOM)
+            self.serialListenerThread.setParameteres(self.serialConnectionParameters)
+            self.serialListenerThread.start()
+            if self.serialListenerThread.is_alive():
                 self.ui.connectionStatusLabel.setText("Connection Status: Online")
                 return 1
             else:
@@ -97,8 +96,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         except Exception as err:
             print(str(err))
     def closeConnetion(self):
-        #TODO Close serial listener thread here
-        self.serialConnection.close()
+        #Set event flag to close thread
+        self.serialListenerThread.event.set()
+        print(self.serialListenerThread.is_alive())
         self.ui.connectionStatusLabel.setText("Connection Status: Offline")
 
     #ALTERING GUI
@@ -149,7 +149,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     for i in range(self.moduleH):
                         self.moduleHList.append(PlotCanvas())
             grid = QtWidgets.QGridLayout()
-            #TODO add bellow for general case
             positions = [(j, i) for i in range(ceil(self.moduleL/2)) for j in range(2)]
 
             for i, position in enumerate(positions):
@@ -159,6 +158,28 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.ui.graphFrame.setLayout(grid)
         except Exception as err:
             print(str(err))
+
+class serialThread (threading.Thread):
+    def __init__(self, threadID, name):
+        threading.Thread.__init__(self)
+        self.event = threading.Event()
+        self.threadID = threadID
+        self.name = name
+        self.serialConnection = serial.Serial()
+
+    def setParameteres(self, parameters):
+        self.serialConnection.bytesize = parameters[0]
+        self.serialConnection.parity = parameters[1]
+        self.serialConnection.stopbits = parameters[2]
+        self.serialConnection.baudrate = parameters[3]
+        self.serialConnection.port = parameters[4]
+    def run(self):
+        #TODO Serial Listener loop
+        while not self.event.is_set():
+            print("im up")
+            sleep(2)
+
+
 
 class PlotCanvas(FigureCanvas):
 
