@@ -54,6 +54,7 @@ class serialThread (QThread):
                 x = re.findall("S[0-9]S[0-9]D]*", str(line))
                 slave = x[0][0:2]
                 sensor = x[0][2:4]
+                #print(line)
                 if(x):
                     #print(x[0])
                     nBytes = self.serialConnection.read(2)[0]

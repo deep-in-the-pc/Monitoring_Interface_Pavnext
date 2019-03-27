@@ -101,7 +101,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialListenerThread.event.set()
         print(self.serialListenerThread.isRunning())
         self.ui.connectionStatusLabel.setText("Connection Status: Offline")
-
+    #TODO Implement Filters
+    #TODO Implement Selecting sensor data
     #ALTERING GUI
 
     # def addGraphs(self, string):
@@ -169,6 +170,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self.Entries = json.load(json_file)
         except FileNotFoundError:
             #if no file is found no entries are added
+            self.d_lock.release()
             return
 
         self.d_lock.release()
@@ -185,12 +187,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def addEntries(self):
         #Used on startup to fill in data
         self.d_lock.acquire()
-
+        print("getting entries")
         try:
             with open('newData.json') as json_file:
                 self.Entries = json.load(json_file)
+            print("got entries")
         except FileNotFoundError:
             #if no file is found no entries are added
+            print("entries failed")
+            self.d_lock.release()
             return
 
         self.d_lock.release()
