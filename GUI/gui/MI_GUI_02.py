@@ -70,6 +70,10 @@ class Ui_MainWindow(object):
         self.comboBox_2.setObjectName("comboBox_2")
         self.horizontalLayout.addWidget(self.comboBox_2)
         self.verticalLayout.addWidget(self.toolsFiltersGroupBox)
+        self.sensorEntryLabel = QtWidgets.QLabel(self.toolsFrame)
+        self.sensorEntryLabel.setWordWrap(True)
+        self.sensorEntryLabel.setObjectName("sensorEntryLabel")
+        self.verticalLayout.addWidget(self.sensorEntryLabel)
         self.sensorEntryListWidget = QtWidgets.QListWidget(self.toolsFrame)
         self.sensorEntryListWidget.setObjectName("sensorEntryListWidget")
         self.verticalLayout.addWidget(self.sensorEntryListWidget)
@@ -92,6 +96,7 @@ class Ui_MainWindow(object):
         self.connectionStatusLabel.setText(_translate("MainWindow", "Connection Status: Offline"))
         self.updateCOMButton.setText(_translate("MainWindow", "Update COM List"))
         self.toolsFiltersGroupBox.setTitle(_translate("MainWindow", "Filters"))
+        self.sensorEntryLabel.setText(_translate("MainWindow", "  S#S#                 Size"))
 
 
 if __name__ == "__main__":

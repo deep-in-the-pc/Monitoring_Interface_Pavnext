@@ -1,13 +1,12 @@
-#for serial comms
-import threading
-import serial.tools.list_ports
-import serial
 import sys
+import threading
+from serialListener import *
 from time import sleep
 from util import *
 from math import ceil
 #for UI
 from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtCore import QThread, pyqtSignal
 from gui.MI_GUI_02 import Ui_MainWindow
 
 #for plots
@@ -23,6 +22,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        #configure serial connection
+        self.d_lock = threading.Lock()
+
+        self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
+
+        self.serialConnectionParameters = list()
+        self.serialConnectionParameters.append(serial.EIGHTBITS)
+        self.serialConnectionParameters.append(serial.PARITY_NONE)
+        self.serialConnectionParameters.append(serial.STOPBITS_ONE)
+        self.serialConnectionParameters.append(57600)
+
+
         #initialize combo box
         self.getCOMList()
 
@@ -31,30 +42,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         else:
             self.serialCOM = self.ui.targetComCB.currentText()
 
-        #window arrangement
-        self.currentSetup = None
-        #module vars
-        self.moduleType = None
-        self.moduleL = 0 #potenciometro linear
-        self.moduleE = 0 #encoder linear
-        self.moduleT = 0 # ToF
-        self.moduleA = 0 # acelarometro
-        self.moduleE = 0 # extensometro
-        self.moduleH = 0 # Hall
-        #graphLists
-        self.moduleLList = []
-        self.moduleEList = []
-        self.moduleTList = []
-        self.moduleAList = []
-        self.moduleEList = []
-        self.moduleHList = []
-        #configure serial connection
-        self.serialListenerThread = serialThread(1, "SerialListener")
-        self.serialConnectionParameters = list()
-        self.serialConnectionParameters.append(serial.EIGHTBITS)
-        self.serialConnectionParameters.append(serial.PARITY_NONE)
-        self.serialConnectionParameters.append(serial.STOPBITS_ONE)
-        self.serialConnectionParameters.append(57600)
+        #Add entries to list
+        self.addEntries()
+
         #targetComConnectButton Callback
         self.ui.targetComConnectButton.clicked.connect(self.targetConnectionCB)
         #updateCOMButton CallBack
@@ -63,6 +53,20 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.targetComCB.activated[str].connect(self.onTargetComCBActivated)
 
 
+
+
+
+
+    def startThread(self):
+        self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
+
+        #Signal from Thread
+        self.serialListenerThread.addEntrySignal.connect(self.addEntry)
+
+        self.serialConnectionParameters.append(self.serialCOM)
+        self.serialListenerThread.setParameteres(self.serialConnectionParameters)
+        self.serialListenerThread.start()
+
     #COMMUNICATION
 
     def getCOMList(self):
@@ -70,7 +74,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.targetComCB.addItems([comport.device for comport in serial.tools.list_ports.comports()])
 
     def targetConnectionCB(self):
-        if self.serialListenerThread.is_alive():
+        if self.serialListenerThread.isRunning():
             self.closeConnetion()
             self.ui.targetComConnectButton.setText("Connect")
         elif(self.serialCOM != None):
@@ -84,11 +88,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def establishConnection(self):
         try:
-            self.serialListenerThread = serialThread(1, "SerialListener")
-            self.serialConnectionParameters.append(self.serialCOM)
-            self.serialListenerThread.setParameteres(self.serialConnectionParameters)
-            self.serialListenerThread.start()
-            if self.serialListenerThread.is_alive():
+            self.startThread()
+            if self.serialListenerThread.isRunning():
                 self.ui.connectionStatusLabel.setText("Connection Status: Online")
                 return 1
             else:
@@ -98,87 +99,106 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def closeConnetion(self):
         #Set event flag to close thread
         self.serialListenerThread.event.set()
-        print(self.serialListenerThread.is_alive())
+        print(self.serialListenerThread.isRunning())
         self.ui.connectionStatusLabel.setText("Connection Status: Offline")
 
     #ALTERING GUI
 
-    def addGraphs(self, string):
-        #TODO FIX/ADD this when entry selection is added
+    # def addGraphs(self, string):
+    #
+    #     try:
+    #         self.moduleL = 0 #potenciometro linear
+    #         self.moduleE = 0 #encoder linear
+    #         self.moduleT = 0 #ToF
+    #         self.moduleA = 0 #acelarometro
+    #         self.moduleE = 0 #extensometro
+    #         self.moduleH = 0 #Hall
+    #         for vars in string.split('-'):
+    #             print(vars)
+    #             id = vars[0]
+    #             n = vars[1:]
+    #             print(id,n)
+    #             if(id == 'M'):
+    #                 self.moduleType = "Molas " + n
+    #             if(id == 'G'):
+    #                 self.moduleType = "Gerador " + n
+    #             if(id == 'L'):
+    #                 print(n)
+    #                 self.moduleL = int(n)
+    #                 positions = [(i, j) for i in range(ceil(self.moduleL / 2)) for j in range(2)]
+    #                 names = ["Potênciometro Linear " + str(pos) for pos in positions]
+    #                 for i in range(self.moduleL):
+    #                     self.moduleLList.append(PlotCanvas(names[i]))
+    #             if(id == 'E'):
+    #                 self.moduleE = int(n)
+    #                 for i in range(self.moduleE):
+    #                     self.moduleEList.append(PlotCanvas())
+    #             if(id == 'T'):
+    #                 self.moduleT = int(n)
+    #                 for i in range(self.moduleT):
+    #                     self.moduleTList.append(PlotCanvas())
+    #             if(id == 'A'):
+    #                 self.moduleA = int(n)
+    #                 name = "Acelarometro " + str((0,0))
+    #                 self.moduleAList.append(PlotCanvas(name))
+    #             if(id == 'E'):
+    #                 self.moduleE = int(n)
+    #                 for i in range(self.moduleE):
+    #                     self.moduleEList.append(PlotCanvas())
+    #             if(id == 'H'):
+    #                 self.moduleH = int(n)
+    #                 for i in range(self.moduleH):
+    #                     self.moduleHList.append(PlotCanvas())
+    #         grid = QtWidgets.QGridLayout()
+    #         positions = [(j, i) for i in range(ceil(self.moduleL/2)) for j in range(2)]
+    #
+    #         for i, position in enumerate(positions):
+    #
+    #             grid.addWidget(self.moduleLList[i], *position)
+    #
+    #         self.ui.graphFrame.setLayout(grid)
+    #     except Exception as err:
+    #         print(str(err))
+
+    def addEntry(self):
+        #Used on trigger by thread signal
+        self.d_lock.acquire()
+
         try:
-            self.moduleL = 0 #potenciometro linear
-            self.moduleE = 0 #encoder linear
-            self.moduleT = 0 #ToF
-            self.moduleA = 0 #acelarometro
-            self.moduleE = 0 #extensometro
-            self.moduleH = 0 #Hall
-            for vars in string.split('-'):
-                print(vars)
-                id = vars[0]
-                n = vars[1:]
-                print(id,n)
-                if(id == 'M'):
-                    self.moduleType = "Molas " + n
-                if(id == 'G'):
-                    self.moduleType = "Gerador " + n
-                if(id == 'L'):
-                    print(n)
-                    self.moduleL = int(n)
-                    positions = [(i, j) for i in range(ceil(self.moduleL / 2)) for j in range(2)]
-                    names = ["Potênciometro Linear " + str(pos) for pos in positions]
-                    for i in range(self.moduleL):
-                        self.moduleLList.append(PlotCanvas(names[i]))
-                if(id == 'E'):
-                    self.moduleE = int(n)
-                    for i in range(self.moduleE):
-                        self.moduleEList.append(PlotCanvas())
-                if(id == 'T'):
-                    self.moduleT = int(n)
-                    for i in range(self.moduleT):
-                        self.moduleTList.append(PlotCanvas())
-                if(id == 'A'):
-                    self.moduleA = int(n)
-                    name = "Acelarometro " + str((0,0))
-                    self.moduleAList.append(PlotCanvas(name))
-                if(id == 'E'):
-                    self.moduleE = int(n)
-                    for i in range(self.moduleE):
-                        self.moduleEList.append(PlotCanvas())
-                if(id == 'H'):
-                    self.moduleH = int(n)
-                    for i in range(self.moduleH):
-                        self.moduleHList.append(PlotCanvas())
-            grid = QtWidgets.QGridLayout()
-            positions = [(j, i) for i in range(ceil(self.moduleL/2)) for j in range(2)]
+            with open('newData.json') as json_file:
+                self.Entries = json.load(json_file)
+        except FileNotFoundError:
+            #if no file is found no entries are added
+            return
 
-            for i, position in enumerate(positions):
+        self.d_lock.release()
 
-                grid.addWidget(self.moduleLList[i], *position)
+        self.ui.sensorEntryListWidget.clear()
 
-            self.ui.graphFrame.setLayout(grid)
-        except Exception as err:
-            print(str(err))
+        for key1, value1 in self.Entries.items():
+            for key2, value2 in value1.items():
+                for entry in value2:
+                    title=key1+key2+"\t"+str(entry['size'])
+                    self.ui.sensorEntryListWidget.addItem(title)
 
-class serialThread (threading.Thread):
-    def __init__(self, threadID, name):
-        threading.Thread.__init__(self)
-        self.event = threading.Event()
-        self.threadID = threadID
-        self.name = name
-        self.serialConnection = serial.Serial()
 
-    def setParameteres(self, parameters):
-        self.serialConnection.bytesize = parameters[0]
-        self.serialConnection.parity = parameters[1]
-        self.serialConnection.stopbits = parameters[2]
-        self.serialConnection.baudrate = parameters[3]
-        self.serialConnection.port = parameters[4]
-    def run(self):
-        #TODO Serial Listener loop
-        while not self.event.is_set():
-            print("im up")
-            sleep(2)
+    def addEntries(self):
+        #Used on startup to fill in data
+        self.d_lock.acquire()
 
+        try:
+            with open('newData.json') as json_file:
+                self.Entries = json.load(json_file)
+        except FileNotFoundError:
+            #if no file is found no entries are added
+            return
+
+        self.d_lock.release()
+        for key1, value1 in self.Entries.items():
+            for key2, value2 in value1.items():
+                for entry in value2:
+                    title=key1+key2+"\t"+str(entry['size'])
+                    self.ui.sensorEntryListWidget.addItem(title)
 
 
 class PlotCanvas(FigureCanvas):
