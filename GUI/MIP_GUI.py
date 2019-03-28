@@ -42,6 +42,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         else:
             self.serialCOM = self.ui.targetComCB.currentText()
 
+
+        #Filters
+        self.slaves = {}
+
+        self.ui.slavesComboBox.addItem("All")
+        self.ui.sensorsComboBox.addItem("All")
+        self.currentSlaveFilter = "All"
+        self.currentSensorFilter = "All"
+
         #Add entries to list
         self.addEntries()
 
@@ -51,8 +60,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.updateCOMButton.clicked.connect(self.getCOMList)
         #combo box Callback
         self.ui.targetComCB.activated[str].connect(self.onTargetComCBActivated)
-
-
+        self.ui.slavesComboBox.activated[str].connect(self.slavesComboBoxCB)
+        self.ui.sensorsComboBox.activated[str].connect(self.sensorsComboBoxCB)
+        #Group box Callback
+        self.ui.toolsFiltersGroupBox.toggled.connect(self.updateFilterComboBoxes)
 
 
 
@@ -72,6 +83,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def getCOMList(self):
         self.ui.targetComCB.clear()
         self.ui.targetComCB.addItems([comport.device for comport in serial.tools.list_ports.comports()])
+        self.serialCOM = self.ui.targetComCB.currentText()
 
     def targetConnectionCB(self):
         if self.serialListenerThread.isRunning():
@@ -101,8 +113,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialListenerThread.event.set()
         print(self.serialListenerThread.isRunning())
         self.ui.connectionStatusLabel.setText("Connection Status: Offline")
-    #TODO Implement Filters
-    #TODO Implement Selecting sensor data
+
     #ALTERING GUI
 
     # def addGraphs(self, string):
@@ -175,31 +186,93 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self.d_lock.release()
 
+        self.slaves = {}
+        for key1, value1 in self.Entries.items():
+            self.slaves["Slave "+key1[-1]] = []
+            for key2, value2 in value1.items():
+                self.slaves["Slave "+key1[-1]].append("Sensor " + key2[-1])
+
         self.ui.sensorEntryListWidget.clear()
 
-        for key1, value1 in self.Entries.items():
-            for key2, value2 in value1.items():
-                for entry in value2:
-                    title=key1+key2+"\t"+str(entry['size'])
-                    self.ui.sensorEntryListWidget.addItem(title)
+        self.updateFilterComboBoxes()
+
+        self.filterEntries()
 
 
     def addEntries(self):
         #Used on startup to fill in data
         self.d_lock.acquire()
-        print("getting entries")
         try:
             with open('newData.json') as json_file:
                 self.Entries = json.load(json_file)
             print("got entries")
         except FileNotFoundError:
             #if no file is found no entries are added
-            print("entries failed")
             self.d_lock.release()
             return
 
-        self.d_lock.release()
+        self.slaves = {}
         for key1, value1 in self.Entries.items():
+            self.slaves["Slave "+key1[-1]] = []
+            for key2, value2 in value1.items():
+                self.slaves["Slave "+key1[-1]].append("Sensor " + key2[-1])
+
+        self.d_lock.release()
+
+        self.updateFilterComboBoxes()
+
+        self.filterEntries()
+
+    def updateFilterComboBoxes(self):
+
+        if self.ui.toolsFiltersGroupBox.isChecked():
+            if(self.ui.slavesComboBox.currentText() == "All"):
+                self.ui.sensorsComboBox.setEnabled(False)
+        else:
+            self.currentSensorFilter = "All"
+            self.currentSlaveFilter = "All"
+
+        self.ui.slavesComboBox.clear()
+        self.ui.slavesComboBox.addItem("All")
+        self.ui.slavesComboBox.addItems(self.slaves.keys())
+        self.ui.slavesComboBox.setCurrentIndex(self.ui.slavesComboBox.findText(self.currentSlaveFilter)) #Keep same filter as before
+        self.ui.sensorsComboBox.clear()
+        self.ui.sensorsComboBox.addItem("All")
+        if self.currentSlaveFilter != "All":
+            self.ui.sensorsComboBox.addItems(self.slaves[self.currentSlaveFilter])
+            self.ui.sensorsComboBox.setCurrentIndex(self.ui.sensorsComboBox.findText(self.currentSensorFilter)) #Keep same filter as before
+        self.filterEntries()
+
+    def slavesComboBoxCB(self, text):
+        self.currentSlaveFilter = text
+        if text != "All":
+            self.ui.sensorsComboBox.setEnabled(True)
+            self.currentSensorFilter = "All"
+        else:
+            self.ui.sensorsComboBox.setEnabled(False)
+
+        self.updateFilterComboBoxes()
+        self.filterEntries()
+
+    def sensorsComboBoxCB(self, text):
+        self.currentSensorFilter = text
+        self.filterEntries()
+
+    def filterEntries(self):
+        self.EntriesFiltered = {}
+        if not self.ui.toolsFiltersGroupBox.isChecked():
+            self.EntriesFiltered = self.Entries
+        else:
+            if self.currentSlaveFilter == "All":
+                self.EntriesFiltered = self.Entries
+            elif self.currentSensorFilter == "All":
+                self.EntriesFiltered["S"+self.currentSlaveFilter[-1]] = self.Entries["S"+self.currentSlaveFilter[-1]]
+            else:
+                self.EntriesFiltered["S"+self.currentSlaveFilter[-1]] = {}
+                self.EntriesFiltered["S"+self.currentSlaveFilter[-1]]["S"+self.currentSensorFilter[-1]] = self.Entries["S"+self.currentSlaveFilter[-1]]["S"+self.currentSensorFilter[-1]]
+
+        self.ui.sensorEntryListWidget.clear()
+        for key1, value1 in self.EntriesFiltered.items():
             for key2, value2 in value1.items():
                 for entry in value2:
                     title=key1+key2+"\t"+str(entry['size'])
