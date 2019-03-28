@@ -120,6 +120,9 @@
      </property>
      <item>
       <widget class="QGroupBox" name="toolsFiltersGroupBox">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="autoFillBackground">
         <bool>false</bool>
        </property>
@@ -143,10 +146,10 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QComboBox" name="comboBox"/>
+         <widget class="QComboBox" name="slavesComboBox"/>
         </item>
         <item>
-         <widget class="QComboBox" name="comboBox_2"/>
+         <widget class="QComboBox" name="sensorsComboBox"/>
         </item>
        </layout>
       </widget>
@@ -154,7 +157,7 @@
      <item>
       <widget class="QLabel" name="sensorEntryLabel">
        <property name="text">
-        <string>  S#S#                 Size</string>
+        <string>  S#S#                ID                   Size</string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>
@@ -162,11 +165,30 @@
       </widget>
      </item>
      <item>
-      <widget class="QListWidget" name="sensorEntryListWidget"/>
+      <widget class="QListWidget" name="sensorEntryListWidget">
+       <property name="dragEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="dragDropMode">
+        <enum>QAbstractItemView::DragOnly</enum>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::ExtendedSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectRows</enum>
+       </property>
+       <property name="textElideMode">
+        <enum>Qt::ElideRight</enum>
+       </property>
+       <property name="selectionRectVisible">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
-   <widget class="QFrame" name="graphFrame">
+   <widget class="graphQFrame" name="graphFrame">
     <property name="geometry">
      <rect>
       <x>230</x>
@@ -175,10 +197,27 @@
       <height>651</height>
      </rect>
     </property>
+    <property name="acceptDrops">
+     <bool>true</bool>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Panel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Sunken</enum>
+    </property>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>graphQFrame</class>
+   <extends>QFrame</extends>
+   <header>gui/guiutility.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -9,10 +9,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import QThread, pyqtSignal
 from gui.MI_GUI_02 import Ui_MainWindow
 
-#for plots
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
+
 
 
 class ApplicationWindow(QtWidgets.QMainWindow):
@@ -114,64 +111,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         print(self.serialListenerThread.isRunning())
         self.ui.connectionStatusLabel.setText("Connection Status: Offline")
 
-    #ALTERING GUI
-
-    # def addGraphs(self, string):
-    #
-    #     try:
-    #         self.moduleL = 0 #potenciometro linear
-    #         self.moduleE = 0 #encoder linear
-    #         self.moduleT = 0 #ToF
-    #         self.moduleA = 0 #acelarometro
-    #         self.moduleE = 0 #extensometro
-    #         self.moduleH = 0 #Hall
-    #         for vars in string.split('-'):
-    #             print(vars)
-    #             id = vars[0]
-    #             n = vars[1:]
-    #             print(id,n)
-    #             if(id == 'M'):
-    #                 self.moduleType = "Molas " + n
-    #             if(id == 'G'):
-    #                 self.moduleType = "Gerador " + n
-    #             if(id == 'L'):
-    #                 print(n)
-    #                 self.moduleL = int(n)
-    #                 positions = [(i, j) for i in range(ceil(self.moduleL / 2)) for j in range(2)]
-    #                 names = ["Potênciometro Linear " + str(pos) for pos in positions]
-    #                 for i in range(self.moduleL):
-    #                     self.moduleLList.append(PlotCanvas(names[i]))
-    #             if(id == 'E'):
-    #                 self.moduleE = int(n)
-    #                 for i in range(self.moduleE):
-    #                     self.moduleEList.append(PlotCanvas())
-    #             if(id == 'T'):
-    #                 self.moduleT = int(n)
-    #                 for i in range(self.moduleT):
-    #                     self.moduleTList.append(PlotCanvas())
-    #             if(id == 'A'):
-    #                 self.moduleA = int(n)
-    #                 name = "Acelarometro " + str((0,0))
-    #                 self.moduleAList.append(PlotCanvas(name))
-    #             if(id == 'E'):
-    #                 self.moduleE = int(n)
-    #                 for i in range(self.moduleE):
-    #                     self.moduleEList.append(PlotCanvas())
-    #             if(id == 'H'):
-    #                 self.moduleH = int(n)
-    #                 for i in range(self.moduleH):
-    #                     self.moduleHList.append(PlotCanvas())
-    #         grid = QtWidgets.QGridLayout()
-    #         positions = [(j, i) for i in range(ceil(self.moduleL/2)) for j in range(2)]
-    #
-    #         for i, position in enumerate(positions):
-    #
-    #             grid.addWidget(self.moduleLList[i], *position)
-    #
-    #         self.ui.graphFrame.setLayout(grid)
-    #     except Exception as err:
-    #         print(str(err))
-
     def addEntry(self):
         #Used on trigger by thread signal
         self.d_lock.acquire()
@@ -192,8 +131,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for key2, value2 in value1.items():
                 self.slaves["Slave "+key1[-1]].append("Sensor " + key2[-1])
 
-        self.ui.sensorEntryListWidget.clear()
-
         self.updateFilterComboBoxes()
 
         self.filterEntries()
@@ -211,13 +148,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.d_lock.release()
             return
 
+        self.d_lock.release()
+
         self.slaves = {}
         for key1, value1 in self.Entries.items():
             self.slaves["Slave "+key1[-1]] = []
             for key2, value2 in value1.items():
                 self.slaves["Slave "+key1[-1]].append("Sensor " + key2[-1])
 
-        self.d_lock.release()
+
 
         self.updateFilterComboBoxes()
 
@@ -272,34 +211,16 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self.EntriesFiltered["S"+self.currentSlaveFilter[-1]]["S"+self.currentSensorFilter[-1]] = self.Entries["S"+self.currentSlaveFilter[-1]]["S"+self.currentSensorFilter[-1]]
 
         self.ui.sensorEntryListWidget.clear()
+
         for key1, value1 in self.EntriesFiltered.items():
             for key2, value2 in value1.items():
                 for entry in value2:
-                    title=key1+key2+"\t"+str(entry['size'])
+                    title=key1+key2+" "*(26-2*len(key1+key2))+str(entry['id'])+" "*(22-2*len(str(entry['id'])))+str(entry['size'])
                     self.ui.sensorEntryListWidget.addItem(title)
 
 
-class PlotCanvas(FigureCanvas):
 
-    def __init__(self, name, parent=None,width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-        self.name = name
-        FigureCanvas.__init__(self, fig)
-        self.setParent(parent)
 
-        FigureCanvas.setSizePolicy(self,
-                                   QtWidgets.QSizePolicy.Expanding,
-                                   QtWidgets.QSizePolicy.Expanding)
-        FigureCanvas.updateGeometry(self)
-        self.plot()
-
-    def plot(self):
-        data = [random.random() for i in range(25)]
-        ax = self.figure.add_subplot(111)
-        ax.plot(data, 'r-')
-        ax.set_title(self.name)
-        self.draw()
 
 
 def main():
