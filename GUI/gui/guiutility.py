@@ -56,17 +56,30 @@ class graphQFrame(QtWidgets.QFrame):
             None
 
         nameP, entries = self.getData(entries)
-        self.addGraph(nameP, entries)
+        #Check if all have the same size
+        if entries == 0:
+            QtWidgets.QMessageBox.warning(self, "Aviso", "Entradas com dimensões diferentes", QtWidgets.QMessageBox.Ok)
+            return
+        else:
+            self.addGraph(nameP, entries)
 
     def getData(self, entries):
         nEntries = []
         nameP = ""
+        preSize = int(entries[0].split()[2])
         for entry in entries:
+
             entry=entry.split()
             slave = entry[0][0:2]
             sensor = entry[0][2:4]
             id = int(entry[1])
             size = int(entry[2])
+
+            if preSize != size:
+                return 0, 0
+
+            preSize = size
+
             name = entry[0]+" id: "+entry[1]
             nameP = nameP+" "+name
             for tEntry in self.EntriesFiltered[slave][sensor]:
@@ -75,11 +88,12 @@ class graphQFrame(QtWidgets.QFrame):
                     break
         #print(nEntries)
         return nameP, nEntries
+
     def addGraph(self, name, entries):
 
         try:
             if self.hasDisplay:
-                self.grid.removeWidget(self.graph)
+                self.clearGraph()
 
             print(name)
             self.graph = PlotCanvas(name, entries)
@@ -92,3 +106,15 @@ class graphQFrame(QtWidgets.QFrame):
 
         except Exception as err:
             print(str(err))
+
+    def clearGraph(self):
+        if self.hasDisplay:
+            self.grid.removeWidget(self.graph)
+
+            self.graph.axes.clear()
+            self.graph.draw()
+
+
+
+
+

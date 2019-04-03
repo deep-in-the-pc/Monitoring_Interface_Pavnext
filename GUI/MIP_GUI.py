@@ -1,15 +1,19 @@
 import sys
+import os
 import threading
+import datetime
 from serialListener import *
 from time import sleep
 from util import *
 from math import ceil
 #for UI
 from PyQt5 import QtWidgets, QtGui, QtCore
+try:
+    from QtCore import QString
+except ImportError:
+    QString = str
 from PyQt5.QtCore import QThread, pyqtSignal
 from gui.MI_GUI_02 import Ui_MainWindow
-
-
 
 
 class ApplicationWindow(QtWidgets.QMainWindow):
@@ -18,6 +22,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        #Configs
+        with open("config.cfg") as cfg:
+            self.cfgs = json.load(cfg)
+        self.saveFile = self.cfgs['SaveFile']
+        self.saveFileBackup = self.cfgs['SaveFileBU']
 
         #configure serial connection
         self.d_lock = threading.Lock()
@@ -62,6 +72,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #Group box Callback
         self.ui.toolsFiltersGroupBox.toggled.connect(self.updateFilterComboBoxes)
 
+        #MenuBar Callback
+        self.ui.actionClear_Graph.triggered.connect(self.actionClearGraphCB)
+        self.ui.actionSave_File.triggered.connect(self.actionSave_FileCB)
+        self.ui.actionOpen_File.triggered.connect(self.actionOpen_FileCB)
 
 
 
@@ -73,6 +87,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self.serialConnectionParameters.append(self.serialCOM)
         self.serialListenerThread.setParameteres(self.serialConnectionParameters)
+        self.serialListenerThread.saveFile = self.saveFile
+        self.serialListenerThread.saveFileBU = self.saveFileBackup
         self.serialListenerThread.start()
 
     #COMMUNICATION
@@ -116,7 +132,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.d_lock.acquire()
 
         try:
-            with open('newData.json') as json_file:
+            with open(self.saveFile) as json_file:
                 self.Entries = json.load(json_file)
         except FileNotFoundError:
             #if no file is found no entries are added
@@ -140,12 +156,17 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #Used on startup to fill in data
         self.d_lock.acquire()
         try:
-            with open('newData.json') as json_file:
+            with open(self.saveFile) as json_file:
                 self.Entries = json.load(json_file)
             print("got entries")
         except FileNotFoundError:
             #if no file is found no entries are added
+            self.slaves = {}
+            self.Entries = {}
             self.d_lock.release()
+            self.updateFilterComboBoxes()
+
+            self.filterEntries()
             return
 
         self.d_lock.release()
@@ -218,9 +239,45 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     title=key1+key2+" "*(26-2*len(key1+key2))+str(entry['id'])+" "*(22-2*len(str(entry['id'])))+str(entry['size'])
                     self.ui.sensorEntryListWidget.addItem(title)
 
+    def getOpenfiles(self):
+        dlg = QtWidgets.QFileDialog()
+        filenames = dlg.getOpenFileName(parent=self, caption="Open File",filter="Json files (*.json)", directory='..\\Data\\')
+        self.saveFile = filenames[0]
+
+        self.saveFileBackup = self.saveFile[:-5]+"_BU.json"
+
+        self.cfgs['SaveFile'] = self.saveFile
+        self.cfgs['SaveFileBU'] = self.saveFileBackup
+
+        with open("config.cfg", 'w') as cfg:
+            json.dump(self.cfgs, cfg, indent=4)
+
+    def getSavefiles(self):
+        dlg = QtWidgets.QFileDialog()
+        filenames = dlg.getSaveFileName(parent=self, caption="Save File",filter="Json files (*.json)",directory=datetime.datetime.now().strftime("..\\Data\\%Y-%m-%d_%H%M"))
+        self.saveFile = filenames[0]
+        self.saveFileBackup = self.saveFile[:-5]+"_BU.json"
+
+        self.cfgs['SaveFile'] = self.saveFile
+        self.cfgs['SaveFileBU'] = self.saveFileBackup
+
+        with open("config.cfg", 'w') as cfg:
+            json.dump(self.cfgs, cfg, indent=4)
 
 
 
+
+    def actionClearGraphCB(self):
+        print("ping")
+        self.ui.graphFrame.clearGraph()
+
+    def actionSave_FileCB(self):
+        self.getSavefiles()
+        self.addEntries()
+
+    def actionOpen_FileCB(self):
+        self.getOpenfiles()
+        self.addEntries()
 
 
 def main():

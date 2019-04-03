@@ -21,6 +21,8 @@ class serialThread (QThread):
         self.name = name
         self.serialConnection = serial.Serial()
         self.d_lock = d_lock
+        self.saveFile = None
+        self.saveFileBU = None
 
     def setParameteres(self, parameters):
         self.serialConnection.bytesize = parameters[0]
@@ -32,7 +34,7 @@ class serialThread (QThread):
     def getJson(self):
         self.d_lock.acquire()
         try:
-            with open('newData.json') as json_file:
+            with open(self.saveFile) as json_file:
                 self.Entries = json.load(json_file)
         except FileNotFoundError:
             self.Entries = {}
@@ -40,9 +42,9 @@ class serialThread (QThread):
     def setJson(self):
         self.d_lock.acquire()
         #Data is initially written to newData to avoid loss of values if program is closed unexpectedly
-        with open('newData.json', 'w') as outfile:
+        with open(self.saveFile, 'w') as outfile:
             json.dump(self.Entries, outfile, indent=4)
-        with open('Data.json', 'w') as outfile:
+        with open(self.saveFileBU, 'w') as outfile:
             json.dump(self.Entries, outfile, indent=4)
         self.d_lock.release()
     def run(self):
