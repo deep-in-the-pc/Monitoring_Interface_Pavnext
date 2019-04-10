@@ -8,39 +8,39 @@
     },
     "prototypes": {
         "M14(A)": {
-            "S0": "Sensor Linear Vertical - 12",
-            "S1": "Sensor Linear Vertical - 11",
-            "S2": "Sensor Linear Vertical - 21",
-            "S3": "Sensor Linear Vertical - 22",
-            "S6": "Sensor Linear Vertical - 13",
-            "S7": "Sensor Linear Vertical - 23"
+            "S0": {"name" : "Sensor Linear Vertical - 12", "type" : "vlin"},
+            "S1": {"name" : "Sensor Linear Vertical - 11", "type" : "vlin"},
+            "S2": {"name" : "Sensor Linear Vertical - 21", "type" : "vlin"},
+            "S3": {"name" : "Sensor Linear Vertical - 22", "type" : "vlin"},
+            "S6": {"name" : "Sensor Linear Vertical - 13", "type" : "vlin"},
+            "S7": {"name" : "Sensor Linear Vertical - 23", "type" : "vlin"}
         },
         "M14(B)": {
-            "S0": "Acelerometro - eixo X",
-            "S1": "Acelerometro - eixo Y",
-            "S2": "Acelerometro - eixo Z"
+            "S0": {"name" : "Acelerometro - eixo X", "type" : "acelx"},
+            "S1": {"name" : "Acelerometro - eixo Y", "type" : "acely"},
+            "S2": {"name" : "Acelerometro - eixo Z", "type" : "acelz"}
         },
         "G14(A)": {
-            "S0": "Sensor Linear Vertical - E",
-            "S1": "Sensor Linear Horizontal - E",
-            "S2": "Sensor Linear Horizontal - D",
-            "S3": "Sensor Linear Vertical - D"
+            "S0": {"name" : "Sensor Linear Vertical - E", "type" : "vlin"},
+            "S1": {"name" : "Sensor Linear Horizontal - E", "type" : "vlin"},
+            "S2": {"name" : "Sensor Linear Horizontal - D", "type" : "vlin"},
+            "S3": {"name" : "Sensor Linear Vertical - D", "type" : "vlin"}
         },
         "G14(B)": {
-            "S0": "Corrente - Gerador 1",
-            "S1": "Tensão - Gerador 1",
-            "S2": "Corrente - Gerador 2",
-            "S3": "Tensão - Gerador 2"
+            "S0": {"name" : "Corrente - Gerador 1", "type" : "corr"},
+            "S1": {"name" : "Tensão - Gerador 1", "type" : "tens"},
+            "S2": {"name" : "Corrente - Gerador 2", "type" : "corr"},
+            "S3": {"name" : "Tensão - Gerador 2", "type" : "tens"}
         },
         "Default": {
-            "S0": "Sensor 0",
-            "S1": "Sensor 1",
-            "S2": "Sensor 2",
-            "S3": "Sensor 3",
-            "S4": "Sensor 4",
-            "S5": "Sensor 5",
-            "S6": "Sensor 6",
-            "S7": "Sensor 7"
+            "S0": {"name" : "Sensor 0", "type" : "default"},
+            "S1": {"name" : "Sensor 1", "type" : "default"},
+            "S2": {"name" : "Sensor 2", "type" : "default"},
+            "S3": {"name" : "Sensor 3", "type" : "default"},
+            "S4": {"name" : "Sensor 4", "type" : "default"},
+            "S5": {"name" : "Sensor 5", "type" : "default"},
+            "S6": {"name" : "Sensor 6", "type" : "default"},
+            "S7": {"name" : "Sensor 7", "type" : "default"}
         }
     }
 }

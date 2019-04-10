@@ -1,0 +1,1 @@
+#TODO Add function to convert from bitdata to physical value dependent on sensor type

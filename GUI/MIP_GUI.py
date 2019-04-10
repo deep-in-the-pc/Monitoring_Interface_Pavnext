@@ -43,9 +43,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.prototypesDecode = self.scfgs['prototypes']
         except FileNotFoundError:
             self.ignoreSConfigs = True
-        self.ignoreSConfigs = True
+        #self.ignoreSConfigs = True
 
         #TODO Add Edit and Add option to Slave config file
+
         #configure serial connection
         self.d_lock = threading.Lock()
 
@@ -144,11 +145,34 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 return 0
         except Exception as err:
             print(str(err))
+
     def closeConnetion(self):
         #Set event flag to close thread
         self.serialListenerThread.event.set()
         print(self.serialListenerThread.isRunning())
         self.ui.connectionStatusLabel.setText("Connection Status: Offline")
+
+
+    def filterEntries(self):
+        self.EntriesFiltered = {}
+        if not self.ui.toolsFiltersGroupBox.isChecked():
+            self.EntriesFiltered = self.Entries
+        else:
+            if self.currentSlaveFilter == "All":
+                self.EntriesFiltered = self.Entries
+            elif self.currentSensorFilter == "All":
+                self.EntriesFiltered["S"+self.currentSlaveFilter[-1]] = self.Entries["S"+self.currentSlaveFilter[-1]]
+            else:
+                self.EntriesFiltered["S"+self.currentSlaveFilter[-1]] = {}
+                self.EntriesFiltered["S"+self.currentSlaveFilter[-1]]["S"+self.currentSensorFilter[-1]] = self.Entries["S"+self.currentSlaveFilter[-1]]["S"+self.currentSensorFilter[-1]]
+
+        self.ui.sensorEntryListWidget.clear()
+
+        for key1, value1 in self.EntriesFiltered.items():
+            for key2, value2 in value1.items():
+                for entry in value2:
+                    title=key1+key2+" "*(26-2*len(key1+key2))+str(entry['id'])+" "*(22-2*len(str(entry['id'])))+str(entry['size'])
+                    self.ui.sensorEntryListWidget.addItem(title)
 
     def addEntry(self):
         #Used on trigger by thread signal
@@ -173,7 +197,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.updateFilterComboBoxes()
 
         self.filterEntries()
-
 
     def addEntries(self):
         #Used on startup to fill in data
@@ -205,6 +228,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.updateFilterComboBoxes()
 
         self.filterEntries()
+
 
     def updateFilterComboBoxes(self):
 
@@ -241,26 +265,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.currentSensorFilter = text
         self.filterEntries()
 
-    def filterEntries(self):
-        self.EntriesFiltered = {}
-        if not self.ui.toolsFiltersGroupBox.isChecked():
-            self.EntriesFiltered = self.Entries
-        else:
-            if self.currentSlaveFilter == "All":
-                self.EntriesFiltered = self.Entries
-            elif self.currentSensorFilter == "All":
-                self.EntriesFiltered["S"+self.currentSlaveFilter[-1]] = self.Entries["S"+self.currentSlaveFilter[-1]]
-            else:
-                self.EntriesFiltered["S"+self.currentSlaveFilter[-1]] = {}
-                self.EntriesFiltered["S"+self.currentSlaveFilter[-1]]["S"+self.currentSensorFilter[-1]] = self.Entries["S"+self.currentSlaveFilter[-1]]["S"+self.currentSensorFilter[-1]]
+    def actionClearGraphCB(self):
+        print("ping")
+        self.ui.graphFrame.clearGraph()
 
-        self.ui.sensorEntryListWidget.clear()
+    def actionSave_FileCB(self):
+        self.getSavefiles()
+        self.addEntries()
 
-        for key1, value1 in self.EntriesFiltered.items():
-            for key2, value2 in value1.items():
-                for entry in value2:
-                    title=key1+key2+" "*(26-2*len(key1+key2))+str(entry['id'])+" "*(22-2*len(str(entry['id'])))+str(entry['size'])
-                    self.ui.sensorEntryListWidget.addItem(title)
+    def actionOpen_FileCB(self):
+        self.getOpenfiles()
+        self.addEntries()
+
 
     def getOpenfiles(self):
         dlg = QtWidgets.QFileDialog()
@@ -286,21 +302,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         with open("config.cfg", 'w') as cfg:
             json.dump(self.cfgs, cfg, indent=4)
-
-
-
-
-    def actionClearGraphCB(self):
-        print("ping")
-        self.ui.graphFrame.clearGraph()
-
-    def actionSave_FileCB(self):
-        self.getSavefiles()
-        self.addEntries()
-
-    def actionOpen_FileCB(self):
-        self.getOpenfiles()
-        self.addEntries()
 
 
 def main():
