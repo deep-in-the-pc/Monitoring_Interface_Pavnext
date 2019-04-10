@@ -1,3 +1,6 @@
+# -*- coding: latin-1 -*-
+
+
 #for plots
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -38,6 +41,10 @@ class graphQFrame(QtWidgets.QFrame):
     def dragEnterEvent(self, e):
         if e.mimeData().hasFormat('application/x-qabstractitemmodeldatalist'):
             self.EntriesFiltered = self.parent().parent().EntriesFiltered
+            self.ignoreSConfigs = self.parent().parent().ignoreSConfigs
+            if(not self.ignoreSConfigs):
+                self.slaveDecode = self.parent().parent().scfgs['slaves']
+                self.prototypesDecode = self.parent().parent().scfgs['prototypes']
             e.accept()
         else:
             e.ignore()
@@ -49,6 +56,7 @@ class graphQFrame(QtWidgets.QFrame):
         source_item = QtGui.QStandardItemModel()
         source_item.dropMimeData(data, QtCore.Qt.CopyAction, 0, 0, QtCore.QModelIndex())
         entries = []
+        #check for data up to 999 entries
         try:
             for i in range(999):
                 entries.append(source_item.item(i, 0).text())
@@ -58,7 +66,10 @@ class graphQFrame(QtWidgets.QFrame):
         nameP, entries = self.getData(entries)
         #Check if all have the same size
         if entries == 0:
-            QtWidgets.QMessageBox.warning(self, "Aviso", "Entradas com dimens√µes diferentes", QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, "Aviso", "Entradas com dimensıes diferentes", QtWidgets.QMessageBox.Ok)
+            return
+        elif entries == 1:
+            QtWidgets.QMessageBox.warning(self, "Aviso", "Entradas n„o configuradas", QtWidgets.QMessageBox.Ok)
             return
         else:
             self.addGraph(nameP, entries)
@@ -80,12 +91,24 @@ class graphQFrame(QtWidgets.QFrame):
 
             preSize = size
 
-            name = entry[0]+" id: "+entry[1]
+            if(not self.ignoreSConfigs):
+                if slave in self.slaveDecode:
+                    if sensor in self.prototypesDecode[self.slaveDecode[slave]]:
+                        name = self.prototypesDecode[self.slaveDecode[slave]][sensor]
+                    else:
+                        continue
+                else:
+                    name = self.prototypesDecode[self.slaveDecode['Default']][sensor]
+            else:
+                name = entry[0]+" id: "+entry[1]
             nameP = nameP+" "+name
             for tEntry in self.EntriesFiltered[slave][sensor]:
                 if tEntry['id'] == id:
                     nEntries.append((name, tEntry['data'], tEntry['time']))
                     break
+
+        if(len(nEntries) == 0):
+            return 1, 1
         #print(nEntries)
         return nameP, nEntries
 
@@ -95,7 +118,6 @@ class graphQFrame(QtWidgets.QFrame):
             if self.hasDisplay:
                 self.clearGraph()
 
-            print(name)
             self.graph = PlotCanvas(name, entries)
 
             self.grid.addWidget(self.graph, 0, 0)

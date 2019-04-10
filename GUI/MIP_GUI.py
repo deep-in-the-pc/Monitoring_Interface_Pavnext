@@ -1,3 +1,5 @@
+# -*- coding: latin-1 -*-
+
 import sys
 import os
 import threading
@@ -24,11 +26,26 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
 
         #Configs
-        with open("config.cfg") as cfg:
-            self.cfgs = json.load(cfg)
-        self.saveFile = self.cfgs['SaveFile']
-        self.saveFileBackup = self.cfgs['SaveFileBU']
+        try:
+            with open("config.cfg") as cfg:
+                self.cfgs = json.load(cfg)
+            self.saveFile = self.cfgs['SaveFile']
+            self.saveFileBackup = self.cfgs['SaveFileBU']
+        except FileNotFoundError:
+            self.saveFile = None
+            self.saveFileBackup = None
 
+        try:
+            with open("slaveconfigs.json") as scfg:
+                self.scfgs = json.load(scfg)
+            self.ignoreSConfigs = False
+            self.slaveDecode = self.scfgs['slaves']
+            self.prototypesDecode = self.scfgs['prototypes']
+        except FileNotFoundError:
+            self.ignoreSConfigs = True
+        self.ignoreSConfigs = True
+
+        #TODO Add Edit and Add option to Slave config file
         #configure serial connection
         self.d_lock = threading.Lock()
 
@@ -76,7 +93,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.actionClear_Graph.triggered.connect(self.actionClearGraphCB)
         self.ui.actionSave_File.triggered.connect(self.actionSave_FileCB)
         self.ui.actionOpen_File.triggered.connect(self.actionOpen_FileCB)
-
+        # self.ui.actionSlavesEdit.triggered.connect()
+        # self.ui.actionSlavesAdd.triggered.connect()
+        # self.ui.actionPrototypesEdit.triggered.connect()
+        # self.ui.actionPrototypesAdd.triggered.connect()
 
 
     def startThread(self):
@@ -99,6 +119,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialCOM = self.ui.targetComCB.currentText()
 
     def targetConnectionCB(self):
+        if self.saveFileBackup == None or self.saveFile == None:
+            self.getSavefiles()
+            return
         if self.serialListenerThread.isRunning():
             self.closeConnetion()
             self.ui.targetComConnectButton.setText("Connect")

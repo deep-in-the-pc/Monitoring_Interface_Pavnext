@@ -10,6 +10,8 @@ import time
 
 from PyQt5.QtCore import QThread, pyqtSignal
 
+
+
 class serialThread (QThread):
 
     addEntrySignal = pyqtSignal()
@@ -54,20 +56,24 @@ class serialThread (QThread):
             while not self.event.is_set():
                 line = self.serialConnection.readline()
                 x = re.findall("S[0-9]S[0-9]D]*", str(line))
-                slave = x[0][0:2]
-                sensor = x[0][2:4]
-                #print(line)
                 if(x):
-                    #print(x[0])
-                    nBytes = self.serialConnection.read(2)[0]
+                    slave = x[0][0:2]
+                    sensor = x[0][2:4]
+                    sizeD = self.serialConnection.read(2)
+                    nBytes = sizeD[0]
                     data = self.serialConnection.read(nBytes)
-
                     timeHeader = self.serialConnection.read(6)
+
+                    # print(line)
+                    # print(sizeD[0])
+                    # print(data)
+                    # print(timeHeader)
 
                     reString = slave+sensor+"T*"
                     x = re.findall(reString, str(timeHeader))
-                    if(x): #checks if time array has same info as data array
-                        nBytes = self.serialConnection.read(2)[0]
+                    if(x): #checks if time array has same info as data
+                        sizeT = self.serialConnection.read(2)
+                        nBytes = sizeT[0]
                         timeData = self.serialConnection.read(nBytes)
                     else:
                         print("skipped because D == T not true")
@@ -75,12 +81,21 @@ class serialThread (QThread):
                 else:
                     print("skipped because x not true")
                     continue
-
+                if(nBytes==0):
+                    continue
+                print(line)
+                print(sizeD[0])
+                print(data)
+                print(timeHeader)
+                print(sizeT[0])
+                print(timeData)
                 sData = []
                 tData = []
                 #convert data from byte array to int list
-                for c in data:
-                    sData.append(c)
+                for c in range(0, len(data), 2):
+                    #int.from_bytes(data[c]+data[c+1], "little")
+                    print(data[c] + data[c+1]*256)
+                    sData.append(data[c] + data[c+1]*256)
                 for c in timeData:
                     tData.append(c)
 
@@ -97,7 +112,7 @@ class serialThread (QThread):
 
                 self.Entries[slave][sensor].append(newEntry)
 
-                print(self.Entries)
+                #print(self.Entries)
 
                 self.setJson()
 

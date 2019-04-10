@@ -1,0 +1,46 @@
+{
+    "slaves": {
+        "S1": "M14(A)",
+        "S2": "M14(B)",
+        "S3": "G14(A)",
+        "S4": "G14(B)",
+        "Default": "Default"
+    },
+    "prototypes": {
+        "M14(A)": {
+            "S0": "Sensor Linear Vertical - 12",
+            "S1": "Sensor Linear Vertical - 11",
+            "S2": "Sensor Linear Vertical - 21",
+            "S3": "Sensor Linear Vertical - 22",
+            "S6": "Sensor Linear Vertical - 13",
+            "S7": "Sensor Linear Vertical - 23"
+        },
+        "M14(B)": {
+            "S0": "Acelerometro - eixo X",
+            "S1": "Acelerometro - eixo Y",
+            "S2": "Acelerometro - eixo Z"
+        },
+        "G14(A)": {
+            "S0": "Sensor Linear Vertical - E",
+            "S1": "Sensor Linear Horizontal - E",
+            "S2": "Sensor Linear Horizontal - D",
+            "S3": "Sensor Linear Vertical - D"
+        },
+        "G14(B)": {
+            "S0": "Corrente - Gerador 1",
+            "S1": "Tensão - Gerador 1",
+            "S2": "Corrente - Gerador 2",
+            "S3": "Tensão - Gerador 2"
+        },
+        "Default": {
+            "S0": "Sensor 0",
+            "S1": "Sensor 1",
+            "S2": "Sensor 2",
+            "S3": "Sensor 3",
+            "S4": "Sensor 4",
+            "S5": "Sensor 5",
+            "S6": "Sensor 6",
+            "S7": "Sensor 7"
+        }
+    }
+}

@@ -230,8 +230,24 @@
     </property>
     <addaction name="actionClear_Graph"/>
    </widget>
+   <widget class="QMenu" name="menuSlaves">
+    <property name="title">
+     <string>Slaves</string>
+    </property>
+    <addaction name="actionSlavesEdit"/>
+    <addaction name="actionSlavesAdd"/>
+   </widget>
+   <widget class="QMenu" name="menuPrototypes">
+    <property name="title">
+     <string>Prototypes</string>
+    </property>
+    <addaction name="actionPrototypesEdit"/>
+    <addaction name="actionPrototypesAdd"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuGraph"/>
+   <addaction name="menuSlaves"/>
+   <addaction name="menuPrototypes"/>
   </widget>
   <action name="actionClear_Graph">
    <property name="text">
@@ -246,6 +262,26 @@
   <action name="actionOpen_File">
    <property name="text">
     <string>Open File</string>
+   </property>
+  </action>
+  <action name="actionSlavesEdit">
+   <property name="text">
+    <string>Edit</string>
+   </property>
+  </action>
+  <action name="actionSlavesAdd">
+   <property name="text">
+    <string>Add</string>
+   </property>
+  </action>
+  <action name="actionPrototypesEdit">
+   <property name="text">
+    <string>Edit</string>
+   </property>
+  </action>
+  <action name="actionPrototypesAdd">
+   <property name="text">
+    <string>Add</string>
    </property>
   </action>
  </widget>
