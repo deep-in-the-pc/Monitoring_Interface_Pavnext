@@ -9,22 +9,22 @@
             "Sensor0": {
                 "id": 0,
                 "status": 1,
-                "restval": 351
+                "restval": 753
             },
             "Sensor1": {
                 "id": 1,
                 "status": 1,
-                "restval": 44
+                "restval": 110
             },
             "Sensor2": {
                 "id": 2,
                 "status": 1,
-                "restval": 585
+                "restval": 974
             },
             "Sensor3": {
                 "id": 3,
                 "status": 1,
-                "restval": 302
+                "restval": 552
             }
         }
     },
@@ -38,22 +38,22 @@
             "Sensor0": {
                 "id": 0,
                 "status": 1,
-                "restval": 867
+                "restval": 175
             },
             "Sensor1": {
                 "id": 1,
                 "status": 1,
-                "restval": 350
+                "restval": 212
             },
             "Sensor2": {
                 "id": 2,
                 "status": 1,
-                "restval": 426
+                "restval": 763
             },
             "Sensor3": {
                 "id": 3,
                 "status": 1,
-                "restval": 1016
+                "restval": 977
             }
         }
     },
@@ -61,28 +61,28 @@
         "address": 2,
         "microprocessor": 1,
         "status": 1,
-        "position": 210,
+        "position": 208,
         "unit": 2,
         "sensors": {
             "Sensor0": {
                 "id": 0,
                 "status": 1,
-                "restval": 741
+                "restval": 212
             },
             "Sensor1": {
                 "id": 1,
                 "status": 1,
-                "restval": 932
+                "restval": 198
             },
             "Sensor2": {
                 "id": 2,
                 "status": 1,
-                "restval": 494
+                "restval": 970
             },
             "Sensor3": {
                 "id": 3,
                 "status": 1,
-                "restval": 841
+                "restval": 334
             }
         }
     },
@@ -90,28 +90,28 @@
         "address": 3,
         "microprocessor": 1,
         "status": 1,
-        "position": 211,
+        "position": 209,
         "unit": 3,
         "sensors": {
             "Sensor0": {
                 "id": 0,
                 "status": 1,
-                "restval": 562
+                "restval": 691
             },
             "Sensor1": {
                 "id": 1,
                 "status": 1,
-                "restval": 511
+                "restval": 636
             },
             "Sensor2": {
                 "id": 2,
                 "status": 1,
-                "restval": 736
+                "restval": 987
             },
             "Sensor3": {
                 "id": 3,
                 "status": 1,
-                "restval": 207
+                "restval": 817
             }
         }
     }
