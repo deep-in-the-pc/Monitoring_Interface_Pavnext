@@ -8,17 +8,17 @@
     },
     "prototypes": {
         "M14(A)": {
-            "S0": {"name" : "Sensor Linear Vertical - 12", "type" : "vlin"},
-            "S1": {"name" : "Sensor Linear Vertical - 11", "type" : "vlin"},
-            "S2": {"name" : "Sensor Linear Vertical - 21", "type" : "vlin"},
-            "S3": {"name" : "Sensor Linear Vertical - 22", "type" : "vlin"},
-            "S6": {"name" : "Sensor Linear Vertical - 13", "type" : "vlin"},
-            "S7": {"name" : "Sensor Linear Vertical - 23", "type" : "vlin"}
+            "S0": {"name" : "Vertical Linear Sensor - 12", "type" : "vlin"},
+            "S1": {"name" : "Vertical Linear Sensor - 11", "type" : "vlin"},
+            "S2": {"name" : "Vertical Linear Sensor - 21", "type" : "vlin"},
+            "S3": {"name" : "Vertical Linear Sensor - 22", "type" : "vlin"},
+            "S6": {"name" : "Vertical Linear Sensor - 13", "type" : "vlin"},
+            "S7": {"name" : "Vertical Linear Sensor - 23", "type" : "vlin"}
         },
         "M14(B)": {
-            "S0": {"name" : "Acelerometro - eixo X", "type" : "acelx"},
-            "S1": {"name" : "Acelerometro - eixo Y", "type" : "acely"},
-            "S2": {"name" : "Acelerometro - eixo Z", "type" : "acelz"}
+            "S0": {"name" : "Accelerometer - X axis", "type" : "acelx"},
+            "S1": {"name" : "Accelerometer - Y axis", "type" : "acely"},
+            "S2": {"name" : "Accelerometer - Z axis", "type" : "acelz"}
         },
         "G14(A)": {
             "S0": {"name" : "Sensor Linear Vertical - E", "type" : "vlin"},
@@ -27,10 +27,10 @@
             "S3": {"name" : "Sensor Linear Vertical - D", "type" : "vlin"}
         },
         "G14(B)": {
-            "S0": {"name" : "Corrente - Gerador 1", "type" : "corr"},
-            "S1": {"name" : "Tensão - Gerador 1", "type" : "tens"},
-            "S2": {"name" : "Corrente - Gerador 2", "type" : "corr"},
-            "S3": {"name" : "Tensão - Gerador 2", "type" : "tens"}
+            "S0": {"name" : "Current - Generator 1", "type" : "curr"},
+            "S1": {"name" : "Voltage - Generator 1", "type" : "volt"},
+            "S2": {"name" : "Current - Generator 2", "type" : "curr"},
+            "S3": {"name" : "Voltage - Generator 2", "type" : "volt"}
         },
         "Default": {
             "S0": {"name" : "Sensor 0", "type" : "default"},

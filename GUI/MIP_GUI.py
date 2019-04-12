@@ -49,8 +49,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         #configure serial connection
         self.d_lock = threading.Lock()
-
-        self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
+        self.c_lock = threading.Lock()
+        self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock, self.c_lock)
 
         self.serialConnectionParameters = list()
         self.serialConnectionParameters.append(serial.EIGHTBITS)
@@ -101,11 +101,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
 
     def startThread(self):
-        self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
+        self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock, self.c_lock)
 
         #Signal from Thread
         self.serialListenerThread.addEntrySignal.connect(self.addEntry)
-
+        self.serialListenerThread.closedSignal.connect(self.closeConnetion)
         self.serialConnectionParameters.append(self.serialCOM)
         self.serialListenerThread.setParameteres(self.serialConnectionParameters)
         self.serialListenerThread.saveFile = self.saveFile
@@ -148,9 +148,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def closeConnetion(self):
         #Set event flag to close thread
-        self.serialListenerThread.event.set()
+        self.serialListenerThread.closeEvent.set()
         print(self.serialListenerThread.isRunning())
         self.ui.connectionStatusLabel.setText("Connection Status: Offline")
+        self.ui.targetComConnectButton.setText("Connect")
 
 
     def filterEntries(self):

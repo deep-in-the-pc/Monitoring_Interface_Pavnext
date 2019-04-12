@@ -191,11 +191,17 @@
    <widget class="graphQFrame" name="graphFrame">
     <property name="geometry">
      <rect>
-      <x>230</x>
-      <y>20</y>
+      <x>270</x>
+      <y>10</y>
       <width>1021</width>
       <height>651</height>
      </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="contextMenuPolicy">
+     <enum>Qt::CustomContextMenu</enum>
     </property>
     <property name="acceptDrops">
      <bool>true</bool>

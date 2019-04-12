@@ -1,0 +1,118 @@
+{
+    "Slave0": {
+        "address": 0,
+        "microprocessor": 1,
+        "status": 1,
+        "position": 224,
+        "unit": 0,
+        "sensors": {
+            "Sensor0": {
+                "id": 0,
+                "status": 1,
+                "restval": 351
+            },
+            "Sensor1": {
+                "id": 1,
+                "status": 1,
+                "restval": 44
+            },
+            "Sensor2": {
+                "id": 2,
+                "status": 1,
+                "restval": 585
+            },
+            "Sensor3": {
+                "id": 3,
+                "status": 1,
+                "restval": 302
+            }
+        }
+    },
+    "Slave1": {
+        "address": 1,
+        "microprocessor": 1,
+        "status": 1,
+        "position": 225,
+        "unit": 1,
+        "sensors": {
+            "Sensor0": {
+                "id": 0,
+                "status": 1,
+                "restval": 867
+            },
+            "Sensor1": {
+                "id": 1,
+                "status": 1,
+                "restval": 350
+            },
+            "Sensor2": {
+                "id": 2,
+                "status": 1,
+                "restval": 426
+            },
+            "Sensor3": {
+                "id": 3,
+                "status": 1,
+                "restval": 1016
+            }
+        }
+    },
+    "Slave2": {
+        "address": 2,
+        "microprocessor": 1,
+        "status": 1,
+        "position": 210,
+        "unit": 2,
+        "sensors": {
+            "Sensor0": {
+                "id": 0,
+                "status": 1,
+                "restval": 741
+            },
+            "Sensor1": {
+                "id": 1,
+                "status": 1,
+                "restval": 932
+            },
+            "Sensor2": {
+                "id": 2,
+                "status": 1,
+                "restval": 494
+            },
+            "Sensor3": {
+                "id": 3,
+                "status": 1,
+                "restval": 841
+            }
+        }
+    },
+    "Slave3": {
+        "address": 3,
+        "microprocessor": 1,
+        "status": 1,
+        "position": 211,
+        "unit": 3,
+        "sensors": {
+            "Sensor0": {
+                "id": 0,
+                "status": 1,
+                "restval": 562
+            },
+            "Sensor1": {
+                "id": 1,
+                "status": 1,
+                "restval": 511
+            },
+            "Sensor2": {
+                "id": 2,
+                "status": 1,
+                "restval": 736
+            },
+            "Sensor3": {
+                "id": 3,
+                "status": 1,
+                "restval": 207
+            }
+        }
+    }
+}
