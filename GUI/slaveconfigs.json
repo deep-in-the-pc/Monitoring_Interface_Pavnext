@@ -8,8 +8,8 @@
     },
     "prototypes": {
         "M14(A)": {
-            "S0": {"name" : "Sensor Linear Vertical - 12", "type" : "vlin"},
-            "S1": {"name" : "Sensor Linear Vertical - 11", "type" : "vlin"},
+            "S0": {"name" : "Sensor Linear Vertical - 11", "type" : "vlin"},
+            "S1": {"name" : "Sensor Linear Vertical - 12", "type" : "vlin"},
             "S2": {"name" : "Sensor Linear Vertical - 21", "type" : "vlin"},
             "S3": {"name" : "Sensor Linear Vertical - 22", "type" : "vlin"},
             "S6": {"name" : "Sensor Linear Vertical - 13", "type" : "vlin"},
