@@ -15,7 +15,7 @@ try:
 except ImportError:
     QString = str
 from PyQt5.QtCore import QThread, pyqtSignal
-from gui.MI_GUI_02 import Ui_MainWindow
+from gui.MI_GUI_0201 import Ui_MainWindow
 
 
 class ApplicationWindow(QtWidgets.QMainWindow):
@@ -59,46 +59,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialConnectionParameters.append(57600)
 
 
-        #initialize combo box
-        self.getCOMList()
-
-        if self.ui.targetComCB.currentText()=='':
-            self.serialCOM = None
-        else:
-            self.serialCOM = self.ui.targetComCB.currentText()
-
-
-        #Filters
-        self.slaves = {}
-
-        self.ui.slavesComboBox.addItem("All")
-        self.ui.sensorsComboBox.addItem("All")
-        self.currentSlaveFilter = "All"
-        self.currentSensorFilter = "All"
-
-        #Add entries to list
-        self.addEntries()
+        #Add check boxes for each COM
+        self.addAvailableCOMs()
 
         #targetComConnectButton Callback
         self.ui.targetComConnectButton.clicked.connect(self.targetConnectionCB)
         #updateCOMButton CallBack
-        self.ui.updateCOMButton.clicked.connect(self.getCOMList)
-        #combo box Callback
-        self.ui.targetComCB.activated[str].connect(self.onTargetComCBActivated)
-        self.ui.slavesComboBox.activated[str].connect(self.slavesComboBoxCB)
-        self.ui.sensorsComboBox.activated[str].connect(self.sensorsComboBoxCB)
-        #Group box Callback
-        self.ui.toolsFiltersGroupBox.toggled.connect(self.updateFilterComboBoxes)
-
-        #MenuBar Callback
-        self.ui.actionClear_Graph.triggered.connect(self.actionClearGraphCB)
-        self.ui.actionSave_File.triggered.connect(self.actionSave_FileCB)
-        self.ui.actionOpen_File.triggered.connect(self.actionOpen_FileCB)
-        # self.ui.actionSlavesEdit.triggered.connect()
-        # self.ui.actionSlavesAdd.triggered.connect()
-        # self.ui.actionPrototypesEdit.triggered.connect()
-        # self.ui.actionPrototypesAdd.triggered.connect()
-
+        self.ui.updateCOMButton.clicked.connect(self.addAvailableCOMs)
 
     def startThread(self):
         self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
@@ -115,9 +82,30 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     #COMMUNICATION
 
     def getCOMList(self):
-        self.ui.targetComCB.clear()
-        self.ui.targetComCB.addItems([comport.device for comport in serial.tools.list_ports.comports()])
-        self.serialCOM = self.ui.targetComCB.currentText()
+        return [comport.device for comport in serial.tools.list_ports.comports()]
+
+    def addAvailableCOMs(self):
+        self.COMList = self.getCOMList()
+        if(self.ui.groupBoxCOM.layout()):
+            while self.ui.groupBoxCOM.grid.count()-1:
+                child = self.ui.groupBoxCOM.grid.takeAt(1)
+                if child.widget():
+                    child.widget().deleteLater()
+                print(self.ui.groupBoxCOM.grid.count())
+        else:
+            self.ui.groupBoxCOM.grid = QtWidgets.QGridLayout()
+            self.ui.groupBoxCOM.grid.addWidget(QtWidgets.QLabel("Status"), 0, 1)
+            self.ui.groupBoxCOM.setLayout(self.ui.groupBoxCOM.grid)
+
+        if (self.COMList):
+            for count, COM in enumerate(self.COMList):
+                print(count, COM)
+                try:
+                    self.ui.groupBoxCOM.grid.addWidget(QtWidgets.QCheckBox(COM), count+1, 0)
+                    self.ui.groupBoxCOM.grid.addWidget(QtWidgets.QLabel("Offline"), count+1, 1)
+                except Exception as err:
+                    print(err)
+
 
     def targetConnectionCB(self):
         if self.saveFileBackup == None or self.saveFile == None:
@@ -228,55 +216,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.updateFilterComboBoxes()
 
         self.filterEntries()
-
-
-    def updateFilterComboBoxes(self):
-
-        if self.ui.toolsFiltersGroupBox.isChecked():
-            if(self.ui.slavesComboBox.currentText() == "All"):
-                self.ui.sensorsComboBox.setEnabled(False)
-        else:
-            self.currentSensorFilter = "All"
-            self.currentSlaveFilter = "All"
-
-        self.ui.slavesComboBox.clear()
-        self.ui.slavesComboBox.addItem("All")
-        self.ui.slavesComboBox.addItems(self.slaves.keys())
-        self.ui.slavesComboBox.setCurrentIndex(self.ui.slavesComboBox.findText(self.currentSlaveFilter)) #Keep same filter as before
-        self.ui.sensorsComboBox.clear()
-        self.ui.sensorsComboBox.addItem("All")
-        if self.currentSlaveFilter != "All":
-            self.ui.sensorsComboBox.addItems(self.slaves[self.currentSlaveFilter])
-            self.ui.sensorsComboBox.setCurrentIndex(self.ui.sensorsComboBox.findText(self.currentSensorFilter)) #Keep same filter as before
-        self.filterEntries()
-
-    def slavesComboBoxCB(self, text):
-        self.currentSlaveFilter = text
-        if text != "All":
-            self.ui.sensorsComboBox.setEnabled(True)
-            self.currentSensorFilter = "All"
-        else:
-            self.ui.sensorsComboBox.setEnabled(False)
-
-        self.updateFilterComboBoxes()
-        self.filterEntries()
-
-    def sensorsComboBoxCB(self, text):
-        self.currentSensorFilter = text
-        self.filterEntries()
-
-    def actionClearGraphCB(self):
-        print("ping")
-        self.ui.graphFrame.clearGraph()
-
-    def actionSave_FileCB(self):
-        self.getSavefiles()
-        self.addEntries()
-
-    def actionOpen_FileCB(self):
-        self.getOpenfiles()
-        self.addEntries()
-
 
     def getOpenfiles(self):
         dlg = QtWidgets.QFileDialog()
