@@ -56,25 +56,28 @@ class serialThread (QThread):
             while not self.event.is_set():
                 line = self.serialConnection.readline()
                 x = re.findall("S[0-9]S[0-9]D]*", str(line))
+                print(line, "line Start")
                 if(x):
                     slave = x[0][0:2]
                     sensor = x[0][2:4]
-                    sizeD = self.serialConnection.read(2)
+                    sizeD = self.serialConnection.read(1)
                     nBytes = sizeD[0]
                     data = self.serialConnection.read(nBytes)
                     timeHeader = self.serialConnection.read(6)
 
-                    # print(line)
-                    # print(sizeD[0])
-                    # print(data)
-                    # print(timeHeader)
+
+                    print(sizeD[0], sizeD,"sizeD")
+                    print(data, "data")
+                    print(timeHeader, "timeHeader")
 
                     reString = slave+sensor+"T*"
                     x = re.findall(reString, str(timeHeader))
                     if(x): #checks if time array has same info as data
-                        sizeT = self.serialConnection.read(2)
+                        sizeT = self.serialConnection.read(1)
                         nBytes = sizeT[0]
                         timeData = self.serialConnection.read(nBytes)
+                        print(sizeT[0], sizeT, "sizeT")
+                        print(timeData, "timeData")
                     else:
                         print("skipped because D == T not true")
                         continue
@@ -83,19 +86,19 @@ class serialThread (QThread):
                     continue
                 if(nBytes==0):
                     continue
-                print(line)
-                print(sizeD[0])
-                print(data)
-                print(timeHeader)
-                print(sizeT[0])
-                print(timeData)
+                # print(line)
+                # print(sizeD[0])
+                # print(data)
+                # print(timeHeader)
+                # print(sizeT[0])
+                # print(timeData)
                 sData = []
                 tData = []
                 #convert data from byte array to int list
                 for c in range(0, len(data), 2):
                     #int.from_bytes(data[c]+data[c+1], "little")
-                    print(data[c] + data[c+1]*256)
-                    sData.append(data[c] + data[c+1]*256)
+                    #print(data[c] + data[c+1]*256)
+                    sData.append(data[c+1] + data[c]*256)
                 for c in timeData:
                     tData.append(c)
 
