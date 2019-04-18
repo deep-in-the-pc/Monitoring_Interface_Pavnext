@@ -17,13 +17,12 @@ class serialThread (QThread):
     addEntrySignal = pyqtSignal()
     closedSignal = pyqtSignal()
 
-    def __init__(self, threadID, name, d_lock, c_lock):
+    def __init__(self, threadID, name, c_lock):
         QThread.__init__(self)
         self.closeEvent = threading.Event()
         self.threadID = threadID
         self.name = name
         self.serialConnection = serial.Serial()
-        self.d_lock = d_lock
         #TODO Add config lock to main
         self.c_lock = c_lock
         self.saveFile = None
@@ -35,7 +34,7 @@ class serialThread (QThread):
         self.serialConnection.stopbits = parameters[2]
         self.serialConnection.baudrate = parameters[3]
         self.serialConnection.port = parameters[4]
-
+    #TODO Change d_lock for c_lock in here and main
     def getJson(self):
         self.d_lock.acquire()
         try:
@@ -176,7 +175,7 @@ class serialThread (QThread):
 
                 entry = self.getEntry()
 
-                if not sData == 1 and not tData == 1:
+                if not entry == 1:
                     slave = entry[0]
                     sensor = entry[1]
                     sData = entry[2]
