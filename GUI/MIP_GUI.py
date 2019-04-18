@@ -101,7 +101,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
 
     def startThread(self):
-        self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock, self.c_lock)
+        self.serialListenerThread = serialThread(1, "SerialListener", self.c_lock)
 
         #Signal from Thread
         self.serialListenerThread.addEntrySignal.connect(self.addEntry)
