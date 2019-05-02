@@ -16,6 +16,7 @@ except ImportError:
     QString = str
 from PyQt5.QtCore import QThread, pyqtSignal
 from gui.MI_GUI_0201 import Ui_MainWindow
+from pyqtgraph import *
 
 
 class ApplicationWindow(QtWidgets.QMainWindow):
@@ -48,6 +49,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #TODO Add Edit and Add option to Slave config file
 
         #configure serial connection
+
+        self.connectionCOMList = []
+
         self.d_lock = threading.Lock()
 
         self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
@@ -57,6 +61,43 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialConnectionParameters.append(serial.PARITY_NONE)
         self.serialConnectionParameters.append(serial.STOPBITS_ONE)
         self.serialConnectionParameters.append(57600)
+
+
+        #Setup GraphicsLayoutWidget M10
+
+        self.m10_w1 = self.ui.graphWindowM10.addPlot(row=0, col=0, title='Acel')
+        self.m10_w2 = self.ui.graphWindowM10.addPlot(row=1, col=0, title='Força')
+
+        self.m10_w1_l = LegendItem((80,30), offset=(60,30))  # args are (size, offset)
+        self.m10_w1_l.setParentItem(self.m10_w1)   # Note we do NOT call plt.addItem in this case
+
+        self.m10_w2_l = LegendItem((80,30), offset=(60,30))  # args are (size, offset)
+        self.m10_w2_l.setParentItem(self.m10_w2)   # Note we do NOT call plt.addItem in this case
+
+        #fill these lists to add points to plot
+        self.m10_acelx_x = []
+        self.m10_acelx_y = []
+        self.m10_acely_x = []
+        self.m10_acely_y = []
+        self.m10_acelz_x = []
+        self.m10_acelz_y = []
+
+        self.m10_forca_x = []
+        self.m10_forca_y = []
+
+        #ADD PLOT PROCEDURE
+
+        acelx = self.m10_w1.plot(self.m10_acelx_x, self.m10_acelx_y, pen='r', symbol='d')
+        acely = self.m10_w1.plot(self.m10_acely_x, self.m10_acely_y, pen='g', symbol='d')
+        acelz = self.m10_w1.plot(self.m10_acelz_x, self.m10_acelz_y, pen='b', symbol='d')
+
+        forca = self.m10_w2.plot(self.m10_forca_x, self.m10_forca_y, pen='r', symbol='d')
+
+        self.m10_w1_l.addItem(acelx, 'Acel X')
+        self.m10_w1_l.addItem(acely, 'Acel Y')
+        self.m10_w1_l.addItem(acelz, 'Acel Z')
+
+        self.m10_w2_l.addItem(forca, 'Força')
 
 
         #Add check boxes for each COM
@@ -97,11 +138,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.ui.groupBoxCOM.grid.addWidget(QtWidgets.QLabel("Status"), 0, 1)
             self.ui.groupBoxCOM.setLayout(self.ui.groupBoxCOM.grid)
 
+
         if (self.COMList):
             for count, COM in enumerate(self.COMList):
                 print(count, COM)
                 try:
-                    self.ui.groupBoxCOM.grid.addWidget(QtWidgets.QCheckBox(COM), count+1, 0)
+                    checkbox = QtWidgets.QCheckBox(COM)
+                    checkbox.stateChanged.connect(self.onTargetComCBActivated)
+                    self.ui.groupBoxCOM.grid.addWidget(checkbox, count+1, 0)
                     self.ui.groupBoxCOM.grid.addWidget(QtWidgets.QLabel("Offline"), count+1, 1)
                 except Exception as err:
                     print(err)
@@ -114,19 +158,28 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         if self.serialListenerThread.isRunning():
             self.closeConnetion()
             self.ui.targetComConnectButton.setText("Connect")
-        elif(self.serialCOM != None):
+        elif(len(self.connectionCOMList)):
             if(self.establishConnection()):
                 # If connection is established set text as disconnect
                 self.ui.targetComConnectButton.setText("Disconnect")
 
-    def onTargetComCBActivated(self, text):
-        if text != None:
-            self.serialCOM = text
+    def onTargetComCBActivated(self):
+        self.connectionCOMList = []
+        for i in range(self.ui.groupBoxCOM.grid.count()):
+            child = self.ui.groupBoxCOM.grid.itemAt(i)
+            try:
+                if child.widget().checkState() == 2:
+                    self.connectionCOMList.append(child.widget().text())
+            except Exception:
+                continue
 
     def establishConnection(self):
         try:
+            #TODO Start n threads
+
             self.startThread()
             if self.serialListenerThread.isRunning():
+                # TODO change status to online of correct label
                 self.ui.connectionStatusLabel.setText("Connection Status: Online")
                 return 1
             else:
