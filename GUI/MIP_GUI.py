@@ -85,20 +85,41 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.m10_forca_x = []
         self.m10_forca_y = []
 
-        #ADD PLOT PROCEDURE
+        self.addPlotM10()
 
-        acelx = self.m10_w1.plot(self.m10_acelx_x, self.m10_acelx_y, pen='r', symbol='d')
-        acely = self.m10_w1.plot(self.m10_acely_x, self.m10_acely_y, pen='g', symbol='d')
-        acelz = self.m10_w1.plot(self.m10_acelz_x, self.m10_acelz_y, pen='b', symbol='d')
+        #Setup GraphicsLayoutWidget M14
 
-        forca = self.m10_w2.plot(self.m10_forca_x, self.m10_forca_y, pen='r', symbol='d')
+        self.m14_w1 = self.ui.graphWindowM14.addPlot(row=0, col=0, title='Pos V')
+        self.m14_w2 = self.ui.graphWindowM14.addPlot(row=1, col=0, title='Acel')
 
-        self.m10_w1_l.addItem(acelx, 'Acel X')
-        self.m10_w1_l.addItem(acely, 'Acel Y')
-        self.m10_w1_l.addItem(acelz, 'Acel Z')
+        self.m14_w1_l = LegendItem((80,30), offset=(60,30))  # args are (size, offset)
+        self.m14_w1_l.setParentItem(self.m14_w1)   # Note we do NOT call plt.addItem in this case
 
-        self.m10_w2_l.addItem(forca, 'Força')
+        self.m14_w2_l = LegendItem((80,30), offset=(60,30))  # args are (size, offset)
+        self.m14_w2_l.setParentItem(self.m14_w2)   # Note we do NOT call plt.addItem in this case
 
+        #fill these lists to add points to plot
+        self.m14_acelx_x = []
+        self.m14_acelx_y = []
+        self.m14_acely_x = []
+        self.m14_acely_y = []
+        self.m14_acelz_x = []
+        self.m14_acelz_y = []
+
+        self.m14_sl0_x = []
+        self.m14_sl0_y = []
+        self.m14_sl1_x = []
+        self.m14_sl1_y = []
+        self.m14_sl2_x = []
+        self.m14_sl2_y = []
+        self.m14_sl3_x = []
+        self.m14_sl3_y = []
+        self.m14_sl4_x = []
+        self.m14_sl4_y = []
+        self.m14_sl5_x = []
+        self.m14_sl5_y = []
+
+        self.addPlotM14()
 
         #Add check boxes for each COM
         self.addAvailableCOMs()
@@ -295,7 +316,46 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         with open("config.cfg", 'w') as cfg:
             json.dump(self.cfgs, cfg, indent=4)
 
+    def addPlotM10(self):
+        # ADD PLOT PROCEDURE
+        # TODO update plot x and y when new data is added
+        acelx = self.m10_w1.plot(self.m10_acelx_x, self.m10_acelx_y, pen='r', symbol='d')
+        acely = self.m10_w1.plot(self.m10_acely_x, self.m10_acely_y, pen='g', symbol='d')
+        acelz = self.m10_w1.plot(self.m10_acelz_x, self.m10_acelz_y, pen='b', symbol='d')
 
+        forca = self.m10_w2.plot(self.m10_forca_x, self.m10_forca_y, pen='r', symbol='d')
+
+        self.m10_w1_l.addItem(acelx, 'Acel X')
+        self.m10_w1_l.addItem(acely, 'Acel Y')
+        self.m10_w1_l.addItem(acelz, 'Acel Z')
+
+        self.m10_w2_l.addItem(forca, 'Força')
+
+    def addPlotM14(self):
+        # ADD PLOT PROCEDURE
+        # TODO update plot x and y when new data is added
+        sl0 = self.m14_w1.plot(self.m14_sl0_x, self.m14_sl0_y, pen='r', symbol='d')
+        sl1 = self.m14_w1.plot(self.m14_sl1_x, self.m14_sl1_y, pen='g', symbol='d')
+        sl2 = self.m14_w1.plot(self.m14_sl2_x, self.m14_sl2_y, pen='b', symbol='d')
+        sl3 = self.m14_w1.plot(self.m14_sl3_x, self.m14_sl3_y, pen=(255, 255, 0), symbol='d')
+        sl4 = self.m14_w1.plot(self.m14_sl4_x, self.m14_sl4_y, pen=(0, 255, 255), symbol='d')
+        sl5 = self.m14_w1.plot(self.m14_sl5_x, self.m14_sl5_y, pen=(255, 0, 255), symbol='d')
+
+
+        acelx = self.m14_w2.plot(self.m14_acelx_x, self.m14_acelx_y, pen='r', symbol='d')
+        acely = self.m14_w2.plot(self.m14_acely_x, self.m14_acely_y, pen='g', symbol='d')
+        acelz = self.m14_w2.plot(self.m14_acelz_x, self.m14_acelz_y, pen='b', symbol='d')
+
+        self.m14_w1_l.addItem(sl0, 'sl0')
+        self.m14_w1_l.addItem(sl1, 'sl1')
+        self.m14_w1_l.addItem(sl2, 'sl2')
+        self.m14_w1_l.addItem(sl3, 'sl3')
+        self.m14_w1_l.addItem(sl4, 'sl4')
+        self.m14_w1_l.addItem(sl5, 'sl5')
+
+        self.m14_w2_l.addItem(acelx, 'Acel X')
+        self.m14_w2_l.addItem(acely, 'Acel Y')
+        self.m14_w2_l.addItem(acelz, 'Acel Z')
 def main():
     app = QtWidgets.QApplication(sys.argv)
     application = ApplicationWindow()
