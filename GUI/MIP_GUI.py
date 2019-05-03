@@ -15,7 +15,7 @@ try:
 except ImportError:
     QString = str
 from PyQt5.QtCore import QThread, pyqtSignal
-from gui.MI_GUI_0201 import Ui_MainWindow
+from gui.MI_GUI_0301 import Ui_MainWindow
 from pyqtgraph import *
 
 
@@ -62,7 +62,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialConnectionParameters.append(serial.STOPBITS_ONE)
         self.serialConnectionParameters.append(57600)
 
-
         #Setup GraphicsLayoutWidget M10
 
         self.m10_w1 = self.ui.graphWindowM10.addPlot(row=0, col=0, title='Acel')
@@ -92,11 +91,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.m14_w1 = self.ui.graphWindowM14.addPlot(row=0, col=0, title='Pos V')
         self.m14_w2 = self.ui.graphWindowM14.addPlot(row=1, col=0, title='Acel')
 
-        self.m14_w1_l = LegendItem((80,30), offset=(60,30))  # args are (size, offset)
-        self.m14_w1_l.setParentItem(self.m14_w1)   # Note we do NOT call plt.addItem in this case
+        self.m14_w1_l = LegendItem((80,30), offset=(60,30))
+        self.m14_w1_l.setParentItem(self.m14_w1)
 
-        self.m14_w2_l = LegendItem((80,30), offset=(60,30))  # args are (size, offset)
-        self.m14_w2_l.setParentItem(self.m14_w2)   # Note we do NOT call plt.addItem in this case
+        self.m14_w2_l = LegendItem((80,30), offset=(60,30))
+        self.m14_w2_l.setParentItem(self.m14_w2)
 
         #fill these lists to add points to plot
         self.m14_acelx_x = []
@@ -173,9 +172,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
 
     def targetConnectionCB(self):
-        if self.saveFileBackup == None or self.saveFile == None:
-            self.getSavefiles()
-            return
+        #if self.saveFileBackup == None or self.saveFile == None:
+        #    self.getSavefiles()
+        #    return
         if self.serialListenerThread.isRunning():
             self.closeConnetion()
             self.ui.targetComConnectButton.setText("Connect")
@@ -322,13 +321,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         acelx = self.m10_w1.plot(self.m10_acelx_x, self.m10_acelx_y, pen='r', symbol='d')
         acely = self.m10_w1.plot(self.m10_acely_x, self.m10_acely_y, pen='g', symbol='d')
         acelz = self.m10_w1.plot(self.m10_acelz_x, self.m10_acelz_y, pen='b', symbol='d')
-
         forca = self.m10_w2.plot(self.m10_forca_x, self.m10_forca_y, pen='r', symbol='d')
-
         self.m10_w1_l.addItem(acelx, 'Acel X')
         self.m10_w1_l.addItem(acely, 'Acel Y')
         self.m10_w1_l.addItem(acelz, 'Acel Z')
-
         self.m10_w2_l.addItem(forca, 'Força')
 
     def addPlotM14(self):
