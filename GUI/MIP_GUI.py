@@ -18,6 +18,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from gui.MI_GUI_0301 import Ui_MainWindow
 from pyqtgraph import *
 
+#TODO add graphWindow to G10 & G14
 
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -46,11 +47,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.ignoreSConfigs = True
         #self.ignoreSConfigs = True
 
-        #TODO Add Edit and Add option to Slave config file
+        #TODO Add Save and Open to config file
 
         #configure serial connection
-
-        self.connectionCOMList = []
 
         self.d_lock = threading.Lock()
 
@@ -60,7 +59,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialConnectionParameters.append(serial.EIGHTBITS)
         self.serialConnectionParameters.append(serial.PARITY_NONE)
         self.serialConnectionParameters.append(serial.STOPBITS_ONE)
-        self.serialConnectionParameters.append(57600)
+        self.serialConnectionParameters.append(500000)
+
 
         #Setup GraphicsLayoutWidget M10
 
@@ -73,19 +73,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.m10_w2_l = LegendItem((80,30), offset=(60,30))  # args are (size, offset)
         self.m10_w2_l.setParentItem(self.m10_w2)   # Note we do NOT call plt.addItem in this case
 
-        #fill these lists to add points to plot
-        self.m10_acelx_x = []
-        self.m10_acelx_y = []
-        self.m10_acely_x = []
-        self.m10_acely_y = []
-        self.m10_acelz_x = []
-        self.m10_acelz_y = []
-
-        self.m10_forca_x = []
-        self.m10_forca_y = []
-
-        self.addPlotM10()
-
         #Setup GraphicsLayoutWidget M14
 
         self.m14_w1 = self.ui.graphWindowM14.addPlot(row=0, col=0, title='Pos V')
@@ -97,7 +84,145 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.m14_w2_l = LegendItem((80,30), offset=(60,30))
         self.m14_w2_l.setParentItem(self.m14_w2)
 
-        #fill these lists to add points to plot
+        self.addEntry()
+
+        #initialize combo box
+        self.getCOMList()
+
+        if self.ui.targetComCB.currentText()=='':
+            self.serialCOM = None
+        else:
+            self.serialCOM = self.ui.targetComCB.currentText()
+
+        #combo box Callback
+        self.ui.targetComCB.activated[str].connect(self.onTargetComCBActivated)
+
+        #targetComConnectButton Callback
+        self.ui.targetComConnectButton.clicked.connect(self.targetConnectionCB)
+        #updateCOMButton CallBack
+        self.ui.updateCOMButton.clicked.connect(self.getCOMList)
+
+    def startThread(self):
+        self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
+
+        #Signal from Thread
+        self.serialListenerThread.addEntrySignal.connect(self.addEntry)
+
+        self.serialConnectionParameters.append(self.serialCOM)
+        self.serialListenerThread.setParameteres(self.serialConnectionParameters)
+        self.serialListenerThread.saveFile = self.saveFile
+        self.serialListenerThread.saveFileBU = self.saveFileBackup
+        self.serialListenerThread.start()
+
+    #COMMUNICATION
+
+    def getCOMList(self):
+        self.ui.targetComCB.clear()
+        self.ui.targetComCB.addItems([comport.device for comport in serial.tools.list_ports.comports()])
+        self.serialCOM = self.ui.targetComCB.currentText()
+
+
+    def targetConnectionCB(self):
+        # if self.saveFileBackup == None or self.saveFile == None:
+        #     self.getSavefiles()
+        #     return
+        if self.serialListenerThread.isRunning():
+            self.closeConnetion()
+            self.ui.targetComConnectButton.setText("Connect")
+        elif(self.serialCOM != None):
+            if(self.establishConnection()):
+                # If connection is established set text as disconnect
+                self.ui.targetComConnectButton.setText("Disconnect")
+
+    def onTargetComCBActivated(self, text):
+        if text != None:
+            self.serialCOM = text
+
+    def establishConnection(self):
+        try:
+            self.startThread()
+            if self.serialListenerThread.isRunning():
+                self.ui.connectionStatusLabel.setText("Connection Status: Online")
+                return 1
+            else:
+                return 0
+        except Exception as err:
+            print(str(err))
+
+    def closeConnetion(self):
+        #Set event flag to close thread
+        self.serialListenerThread.closeEvent.set()
+        print(self.serialListenerThread.isRunning())
+        self.ui.connectionStatusLabel.setText("Connection Status: Offline")
+
+    def addEntry(self):
+        #Used on trigger by thread signal
+        self.d_lock.acquire()
+
+        try:
+            with open(self.saveFile) as json_file:
+                self.Entries = json.load(json_file)
+        except FileNotFoundError:
+            #if no file is found no entries are added
+            #self.d_lock.release()
+            None
+        self.d_lock.release()
+
+        #UPDATE data lists
+
+        #M10
+
+        self.m10_acelx_x = []
+        self.m10_acelx_y = []
+        self.m10_acely_x = []
+        self.m10_acely_y = []
+        self.m10_acelz_x = []
+        self.m10_acelz_y = []
+
+        self.m10_forca_x = []
+        self.m10_forca_y = []
+
+
+
+
+
+        #m10_acelx
+        try:
+            for data in self.Entries["0"]["sensors"]["17"]["entries"]:
+                self.m10_acelx_y = self.m10_acelx_y + data["data"]
+            self.m10_acelx_x = [i for i in range(len(self.m10_acelx_y))]
+            m10acelx = True
+        except Exception:
+            m10acelx = False
+        #m10_acely
+        try:
+            for data in self.Entries["0"]["sensors"]["18"]["entries"]:
+                self.m10_acelz_y = self.m10_acely_y + data["data"]
+            self.m10_acely_x = [i for i in range(len(self.m10_acely_y))]
+            m10acely = True
+        except Exception:
+            m10acely = False
+        #m10_acelz
+        try:
+            for data in self.Entries["0"]["sensors"]["19"]["entries"]:
+                self.m10_acelz_y = self.m10_acelz_y + data["data"]
+            self.m10_acelz_x = [i for i in range(len(self.m10_acelz_y))]
+            m10acelz = True
+        except Exception:
+            m10acelz = False
+        #m10_forca_x
+        try:
+            for data in self.Entries["0"]["sensors"]["33"]["entries"]:
+                self.m10_forca_y = self.m10_forca_y + data["data"]
+            self.m10_forca_x = [i for i in range(len(self.m10_forca_y))]
+            m10forc = True
+        except Exception:
+            m10forc = False
+
+
+        #M14
+
+        #CLEAR lists
         self.m14_acelx_x = []
         self.m14_acelx_y = []
         self.m14_acely_x = []
@@ -117,178 +242,97 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.m14_sl4_y = []
         self.m14_sl5_x = []
         self.m14_sl5_y = []
+        # CLEAR lists
 
-        self.addPlotM14()
-
-        #Add check boxes for each COM
-        self.addAvailableCOMs()
-
-        #targetComConnectButton Callback
-        self.ui.targetComConnectButton.clicked.connect(self.targetConnectionCB)
-        #updateCOMButton CallBack
-        self.ui.updateCOMButton.clicked.connect(self.addAvailableCOMs)
-
-    def startThread(self):
-        self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
-
-        #Signal from Thread
-        self.serialListenerThread.addEntrySignal.connect(self.addEntry)
-
-        self.serialConnectionParameters.append(self.serialCOM)
-        self.serialListenerThread.setParameteres(self.serialConnectionParameters)
-        self.serialListenerThread.saveFile = self.saveFile
-        self.serialListenerThread.saveFileBU = self.saveFileBackup
-        self.serialListenerThread.start()
-
-    #COMMUNICATION
-
-    def getCOMList(self):
-        return [comport.device for comport in serial.tools.list_ports.comports()]
-
-    def addAvailableCOMs(self):
-        self.COMList = self.getCOMList()
-        if(self.ui.groupBoxCOM.layout()):
-            while self.ui.groupBoxCOM.grid.count()-1:
-                child = self.ui.groupBoxCOM.grid.takeAt(1)
-                if child.widget():
-                    child.widget().deleteLater()
-                print(self.ui.groupBoxCOM.grid.count())
-        else:
-            self.ui.groupBoxCOM.grid = QtWidgets.QGridLayout()
-            self.ui.groupBoxCOM.grid.addWidget(QtWidgets.QLabel("Status"), 0, 1)
-            self.ui.groupBoxCOM.setLayout(self.ui.groupBoxCOM.grid)
-
-
-        if (self.COMList):
-            for count, COM in enumerate(self.COMList):
-                print(count, COM)
-                try:
-                    checkbox = QtWidgets.QCheckBox(COM)
-                    checkbox.stateChanged.connect(self.onTargetComCBActivated)
-                    self.ui.groupBoxCOM.grid.addWidget(checkbox, count+1, 0)
-                    self.ui.groupBoxCOM.grid.addWidget(QtWidgets.QLabel("Offline"), count+1, 1)
-                except Exception as err:
-                    print(err)
-
-
-    def targetConnectionCB(self):
-        #if self.saveFileBackup == None or self.saveFile == None:
-        #    self.getSavefiles()
-        #    return
-        if self.serialListenerThread.isRunning():
-            self.closeConnetion()
-            self.ui.targetComConnectButton.setText("Connect")
-        elif(len(self.connectionCOMList)):
-            if(self.establishConnection()):
-                # If connection is established set text as disconnect
-                self.ui.targetComConnectButton.setText("Disconnect")
-
-    def onTargetComCBActivated(self):
-        self.connectionCOMList = []
-        for i in range(self.ui.groupBoxCOM.grid.count()):
-            child = self.ui.groupBoxCOM.grid.itemAt(i)
-            try:
-                if child.widget().checkState() == 2:
-                    self.connectionCOMList.append(child.widget().text())
-            except Exception:
-                continue
-
-    def establishConnection(self):
+        # m14_acelx
         try:
-            #TODO Start n threads
+            for data in self.Entries["1"]["sensors"]["33"]["entries"]:
+                self.m14_acelx_y = self.m14_acelx_y + data["data"]
+            self.m14_acelx_x = [i for i in range(len(self.m14_acelx_y))]
+            m14_acelx = True
+        except Exception:
+            m14_acelx = False
 
-            self.startThread()
-            if self.serialListenerThread.isRunning():
-                # TODO change status to online of correct label
-                self.ui.connectionStatusLabel.setText("Connection Status: Online")
-                return 1
-            else:
-                return 0
-        except Exception as err:
-            print(str(err))
-
-    def closeConnetion(self):
-        #Set event flag to close thread
-        self.serialListenerThread.event.set()
-        print(self.serialListenerThread.isRunning())
-        self.ui.connectionStatusLabel.setText("Connection Status: Offline")
-
-
-    def filterEntries(self):
-        self.EntriesFiltered = {}
-        if not self.ui.toolsFiltersGroupBox.isChecked():
-            self.EntriesFiltered = self.Entries
-        else:
-            if self.currentSlaveFilter == "All":
-                self.EntriesFiltered = self.Entries
-            elif self.currentSensorFilter == "All":
-                self.EntriesFiltered["S"+self.currentSlaveFilter[-1]] = self.Entries["S"+self.currentSlaveFilter[-1]]
-            else:
-                self.EntriesFiltered["S"+self.currentSlaveFilter[-1]] = {}
-                self.EntriesFiltered["S"+self.currentSlaveFilter[-1]]["S"+self.currentSensorFilter[-1]] = self.Entries["S"+self.currentSlaveFilter[-1]]["S"+self.currentSensorFilter[-1]]
-
-        self.ui.sensorEntryListWidget.clear()
-
-        for key1, value1 in self.EntriesFiltered.items():
-            for key2, value2 in value1.items():
-                for entry in value2:
-                    title=key1+key2+" "*(26-2*len(key1+key2))+str(entry['id'])+" "*(22-2*len(str(entry['id'])))+str(entry['size'])
-                    self.ui.sensorEntryListWidget.addItem(title)
-
-    def addEntry(self):
-        #Used on trigger by thread signal
-        self.d_lock.acquire()
-
+        #m14_acely
         try:
-            with open(self.saveFile) as json_file:
-                self.Entries = json.load(json_file)
-        except FileNotFoundError:
-            #if no file is found no entries are added
-            self.d_lock.release()
-            return
+            for data in self.Entries["1"]["sensors"]["34"]["entries"]:
+                self.m14_acely_y = self.m14_acely_y + data["data"]
+            self.m14_acely_x = [i for i in range(len(self.m14_acely_y))]
+            m14_acely = True
+        except Exception:
+            m14_acely = False
 
-        self.d_lock.release()
-
-        self.slaves = {}
-        for key1, value1 in self.Entries.items():
-            self.slaves["Slave "+key1[-1]] = []
-            for key2, value2 in value1.items():
-                self.slaves["Slave "+key1[-1]].append("Sensor " + key2[-1])
-
-        self.updateFilterComboBoxes()
-
-        self.filterEntries()
-
-    def addEntries(self):
-        #Used on startup to fill in data
-        self.d_lock.acquire()
+        #m14_acelz
         try:
-            with open(self.saveFile) as json_file:
-                self.Entries = json.load(json_file)
-            print("got entries")
-        except FileNotFoundError:
-            #if no file is found no entries are added
-            self.slaves = {}
-            self.Entries = {}
-            self.d_lock.release()
-            self.updateFilterComboBoxes()
+            for data in self.Entries["1"]["sensors"]["35"]["entries"]:
+                self.m14_acelz_y = self.m14_acelz_y + data["data"]
+            self.m14_acelz_x = [i for i in range(len(self.m14_acelz_y))]
+            m14_acelz = True
+        except Exception:
+            m14_acelz = False
+        #m14_sl0
+        try:
+            for data in self.Entries["1"]["sensors"]["17"]["entries"]:
+                self.m14_sl0_y = self.m14_sl0_y + data["data"]
+            self.m14_sl0_x = [i for i in range(len(self.m14_sl0_y))]
+            m14_sl0 = True
+        except Exception:
+            m14_sl0 = False
+        #m14_sl1
+        try:
+            for data in self.Entries["1"]["sensors"]["18"]["entries"]:
+                self.m14_sl1_y = self.m14_sl1_y + data["data"]
+            self.m14_sl1_x = [i for i in range(len(self.m14_sl1_y))]
+            m14_sl1 = True
+        except Exception:
+            m14_sl1 = False
+        #m14_sl2
+        try:
+            for data in self.Entries["1"]["sensors"]["19"]["entries"]:
+                self.m14_sl2_y = self.m14_sl2_y + data["data"]
+            self.m14_sl2_x = [i for i in range(len(self.m14_sl2_y))]
+            m14_sl2 = True
+        except Exception:
+            m14_sl2 = False
+        #m14_sl3
+        try:
+            for data in self.Entries["1"]["sensors"]["49"]["entries"]:
+                self.m14_sl3_y = self.m14_sl3_y + data["data"]
+            self.m14_sl3_x = [i for i in range(len(self.m14_sl3_y))]
+            m14_sl3 = True
+        except Exception:
+            m14_sl3 = False
+        #m14_sl4
+        try:
+            for data in self.Entries["1"]["sensors"]["50"]["entries"]:
+                self.m14_sl4_y = self.m14_sl4_y + data["data"]
+            self.m14_sl4_x = [i for i in range(len(self.m14_sl4_y))]
+            m14_sl4 = True
+        except Exception:
+            m14_sl4 = False
+        #m14_sl5
+        try:
+            for data in self.Entries["1"]["sensors"]["51"]["entries"]:
+                self.m14_sl5_y = self.m14_sl5_y + data["data"]
+            self.m14_sl5_x = [i for i in range(len(self.m14_sl5_y))]
+            m14_sl5 = True
+        except Exception:
+            m14_sl5 = False
+        m10 = (m10acelx, m10acely, m10acelz, m10forc)
+        m14 = (m14_acelx, m14_acely, m14_acelz, m14_sl0, m14_sl1, m14_sl2, m14_sl3, m14_sl4, m14_sl5)
+        self.updatePlots(m10=m10, m14=m14)
 
-            self.filterEntries()
-            return
 
-        self.d_lock.release()
+    def updatePlots(self, m10=None, m14=None, g10=None, g14=None):
+        print(m10)
+        print(m14)
+        if(m10):
+            print("m10")
+            self.addPlotM10(m10)
+        if(m14):
+            print("m14")
+            self.addPlotM14(m14)
 
-        self.slaves = {}
-        for key1, value1 in self.Entries.items():
-            self.slaves["Slave "+key1[-1]] = []
-            for key2, value2 in value1.items():
-                self.slaves["Slave "+key1[-1]].append("Sensor " + key2[-1])
-
-
-
-        self.updateFilterComboBoxes()
-
-        self.filterEntries()
 
     def getOpenfiles(self):
         dlg = QtWidgets.QFileDialog()
@@ -315,43 +359,113 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         with open("config.cfg", 'w') as cfg:
             json.dump(self.cfgs, cfg, indent=4)
 
-    def addPlotM10(self):
+    def addPlotM10(self, m10):
         # ADD PLOT PROCEDURE
-        # TODO update plot x and y when new data is added
-        acelx = self.m10_w1.plot(self.m10_acelx_x, self.m10_acelx_y, pen='r', symbol='d')
-        acely = self.m10_w1.plot(self.m10_acely_x, self.m10_acely_y, pen='g', symbol='d')
-        acelz = self.m10_w1.plot(self.m10_acelz_x, self.m10_acelz_y, pen='b', symbol='d')
-        forca = self.m10_w2.plot(self.m10_forca_x, self.m10_forca_y, pen='r', symbol='d')
-        self.m10_w1_l.addItem(acelx, 'Acel X')
-        self.m10_w1_l.addItem(acely, 'Acel Y')
-        self.m10_w1_l.addItem(acelz, 'Acel Z')
-        self.m10_w2_l.addItem(forca, 'Força')
+        self.m10_w1.clear()
 
-    def addPlotM14(self):
+        if (m10[0]):
+            acelx = self.m10_w1.plot(self.m10_acelx_x, self.m10_acelx_y, pen='r')
+            self.m10_w1_l.removeItem('Acel X')
+            self.m10_w1_l.addItem(acelx, 'Acel X')
+        if (m10[1]):
+            acely = self.m10_w1.plot(self.m10_acely_x, self.m10_acely_y, pen='g')
+            self.m10_w1_l.removeItem('Acel Y')
+            self.m10_w1_l.addItem(acely, 'Acel Y')
+        if (m10[2]):
+            acelz = self.m10_w1.plot(self.m10_acelz_x, self.m10_acelz_y, pen='b')
+            self.m10_w1_l.removeItem('Acel Z')
+            self.m10_w1_l.addItem(acelz, 'Acel Z')
+        if (m10[3]):
+            forca = self.m10_w2.plot(self.m10_forca_x, self.m10_forca_y, pen='r')
+            self.m10_w2_l.removeItem('Força')
+            self.m10_w2_l.addItem(forca, 'Força')
+
+
+
+
+
+
+
+
+
+
+
+    def addPlotM14(self, m14):
         # ADD PLOT PROCEDURE
-        # TODO update plot x and y when new data is added
-        sl0 = self.m14_w1.plot(self.m14_sl0_x, self.m14_sl0_y, pen='r', symbol='d')
-        sl1 = self.m14_w1.plot(self.m14_sl1_x, self.m14_sl1_y, pen='g', symbol='d')
-        sl2 = self.m14_w1.plot(self.m14_sl2_x, self.m14_sl2_y, pen='b', symbol='d')
-        sl3 = self.m14_w1.plot(self.m14_sl3_x, self.m14_sl3_y, pen=(255, 255, 0), symbol='d')
-        sl4 = self.m14_w1.plot(self.m14_sl4_x, self.m14_sl4_y, pen=(0, 255, 255), symbol='d')
-        sl5 = self.m14_w1.plot(self.m14_sl5_x, self.m14_sl5_y, pen=(255, 0, 255), symbol='d')
+
+        if (m14[3]):
+            for item in self.m14_w1.listDataItems():
+                if item.name() == "sl0":
+                    self.m14_w1.removeItem(item)
+            sl0 = self.m14_w1.plot(self.m14_sl0_x, self.m14_sl0_y, pen='r', name="sl0")
+            self.m14_w1_l.removeItem('sl0')
+            self.m14_w1_l.addItem(sl0, 'sl0')
+        if (m14[4]):
+            for item in self.m14_w1.listDataItems():
+                if item.name() == "sl1":
+                    self.m14_w1.removeItem(item)
+            sl1 = self.m14_w1.plot(self.m14_sl1_x, self.m14_sl1_y, pen='g', name="sl1")
+            self.m14_w1_l.removeItem('sl1')
+            self.m14_w1_l.addItem(sl1, 'sl1')
+        if (m14[5]):
+            for item in self.m14_w1.listDataItems():
+                if item.name() == "sl2":
+                    self.m14_w1.removeItem(item)
+            sl2 = self.m14_w1.plot(self.m14_sl2_x, self.m14_sl2_y, pen='b', name="sl2")
+            self.m14_w1_l.removeItem('sl2')
+            self.m14_w1_l.addItem(sl2, 'sl2')
+        if (m14[6]):
+            for item in self.m14_w1.listDataItems():
+                if item.name() == "sl3":
+                    self.m14_w1.removeItem(item)
+            sl3 = self.m14_w1.plot(self.m14_sl3_x, self.m14_sl3_y, pen=(255, 255, 0), name="sl3")
+            self.m14_w1_l.removeItem('sl3')
+            self.m14_w1_l.addItem(sl3, 'sl3')
+        if (m14[7]):
+            for item in self.m14_w1.listDataItems():
+                if item.name() == "sl4":
+                    self.m14_w1.removeItem(item)
+            sl4 = self.m14_w1.plot(self.m14_sl4_x, self.m14_sl4_y, pen=(0, 255, 255), name="sl4")
+            self.m14_w1_l.removeItem('sl4')
+            self.m14_w1_l.addItem(sl4, 'sl4')
+        if (m14[8]):
+            for item in self.m14_w1.listDataItems():
+                if item.name() == "sl5":
+                    self.m14_w1.removeItem(item)
+            sl5 = self.m14_w1.plot(self.m14_sl5_x, self.m14_sl5_y, pen=(255, 0, 255), name="sl5")
+            self.m14_w1_l.removeItem('sl5')
+            self.m14_w1_l.addItem(sl5, 'sl5')
 
 
-        acelx = self.m14_w2.plot(self.m14_acelx_x, self.m14_acelx_y, pen='r', symbol='d')
-        acely = self.m14_w2.plot(self.m14_acely_x, self.m14_acely_y, pen='g', symbol='d')
-        acelz = self.m14_w2.plot(self.m14_acelz_x, self.m14_acelz_y, pen='b', symbol='d')
+        if(m14[0]):
+            for item in self.m14_w2.listDataItems():
+                if item.name() == "acelx":
+                    self.m14_w2.removeItem(item)
+            acelx = self.m14_w2.plot(self.m14_acelx_x, self.m14_acelx_y, pen='r', name="acelx")
+            self.m14_w2_l.removeItem('Acel X')
+            self.m14_w2_l.addItem(acelx, 'Acel X')
+        if (m14[1]):
+            for item in self.m14_w2.listDataItems():
+                if item.name() == "acely":
+                    self.m14_w2.removeItem(item)
+            self.m14_w2.removeItem("acely")
+            acely = self.m14_w2.plot(self.m14_acely_x, self.m14_acely_y, pen='g', name="acely")
+            self.m14_w2_l.removeItem('Acel Y')
+            self.m14_w2_l.addItem(acely, 'Acel Y')
+        if (m14[2]):
+            for item in self.m14_w2.listDataItems():
+                if item.name() == "acelz":
+                    self.m14_w2.removeItem(item)
+            self.m14_w2.removeItem("acelz")
+            acelz = self.m14_w2.plot(self.m14_acelz_x, self.m14_acelz_y, pen='b', name="acelz")
+            self.m14_w2_l.removeItem('Acel Z')
+            self.m14_w2_l.addItem(acelz, 'Acel Z')
 
-        self.m14_w1_l.addItem(sl0, 'sl0')
-        self.m14_w1_l.addItem(sl1, 'sl1')
-        self.m14_w1_l.addItem(sl2, 'sl2')
-        self.m14_w1_l.addItem(sl3, 'sl3')
-        self.m14_w1_l.addItem(sl4, 'sl4')
-        self.m14_w1_l.addItem(sl5, 'sl5')
 
-        self.m14_w2_l.addItem(acelx, 'Acel X')
-        self.m14_w2_l.addItem(acely, 'Acel Y')
-        self.m14_w2_l.addItem(acelz, 'Acel Z')
+        print(len(self.m14_sl0_x), len(self.m14_sl1_x), len(self.m14_sl2_x), len(self.m14_sl3_x), len(self.m14_sl4_x), len(self.m14_sl5_x))
+        print(len(self.m14_sl0_y), len(self.m14_sl1_y), len(self.m14_sl2_y), len(self.m14_sl3_y), len(self.m14_sl4_y), len(self.m14_sl5_y))
+        print(len(self.m14_acelx_x), len(self.m14_acely_x), len(self.m14_acelz_x))
+        print(len(self.m14_acelx_y), len(self.m14_acely_y), len(self.m14_acelz_y))
 def main():
     app = QtWidgets.QApplication(sys.argv)
     application = ApplicationWindow()
