@@ -23,7 +23,6 @@ class serialThread (QThread):
         self.threadID = threadID
         self.name = name
         self.serialConnection = serial.Serial()
-        #TODO Add config lock to main
         self.c_lock = c_lock
         self.saveFile = None
         self.saveFileBU = None
@@ -34,124 +33,110 @@ class serialThread (QThread):
         self.serialConnection.stopbits = parameters[2]
         self.serialConnection.baudrate = parameters[3]
         self.serialConnection.port = parameters[4]
-    #TODO Change d_lock for c_lock in here and main
     def getJson(self):
-        self.d_lock.acquire()
+        self.c_lock.acquire()
         try:
+            ##print(self.saveFile)
             with open(self.saveFile) as json_file:
                 self.config = json.load(json_file)
         except FileNotFoundError:
             self.config = {}
-        self.d_lock.release()
+        self.c_lock.release()
     def setJson(self):
-        self.d_lock.acquire()
+        self.c_lock.acquire()
         #Data is initially written to newData to avoid loss of values if program is closed unexpectedly
         with open(self.saveFile, 'w') as outfile:
             json.dump(self.config, outfile, indent=4)
         with open(self.saveFileBU, 'w') as outfile:
             json.dump(self.config, outfile, indent=4)
-        self.d_lock.release()
+        self.c_lock.release()
 
     def getHeader(self):
-        #TODO Convert byte to string with tables
         self.config = {}
 
         startline = self.serialConnection.readline()
-        print(startline)
+        #print(startline)
         if(startline != b"start\n"):
             return 1
         nSlaves = self.serialConnection.read(1)[0]
-        print(nSlaves)
+        #print(nSlaves)
         for n1 in range(nSlaves):
-            slave = "Slave"+str(n1)
-            self.config[slave] = {}
             address = self.serialConnection.read(1)[0]
-            print(address, "address")
-            self.config[slave]['address'] = address
+            #print(address, "address")
             microprocessor = self.serialConnection.read(1)[0]
-            print(microprocessor, "microprocessor")
-            self.config[slave]['microprocessor'] = microprocessor
+            #print(microprocessor, "microprocessor")
             status = self.serialConnection.read(1)[0]
-            print(status, "status")
-            self.config[slave]['status'] = status
-            position = self.serialConnection.read(1)[0]
-            print(position, "position")
-            self.config[slave]['position'] = position
+            #print(status, "status")
+            position_m = self.serialConnection.read(1)[0]
+            #print(position_m, "position_m")
             unit = self.serialConnection.read(1)[0]
-            print(unit, "unit")
-            self.config[slave]['unit'] = unit
-            self.config[slave]['sensors'] = {}
+            #print(unit, "unit")
+
+            self.config[position_m] = {}
+            self.config[position_m]['address'] = address
+            self.config[position_m]['microprocessor'] = microprocessor
+            self.config[position_m]['status'] = status
+            self.config[position_m]['position'] = position_m
+            self.config[position_m]['unit'] = unit
+            self.config[position_m]['sensors'] = {}
             nSensors = self.serialConnection.read(1)[0]
-            print(nSensors, "nSensors")
+            #print(nSensors, "nSensors")
             for n2 in range(nSensors):
-                sensor = "Sensor"+str(n2)
-                self.config[slave]['sensors'][sensor] = {}
-                id = self.serialConnection.read(1)[0]
-                print(id, "id nSensors")
-                self.config[slave]['sensors'][sensor]["id"] = id
+                function = self.serialConnection.read(1)[0]
+                #print(function, "function nSensors")
                 status = self.serialConnection.read(1)[0]
-                print(status, "status nSensors")
-                self.config[slave]['sensors'][sensor]["status"] = status
+                #print(status, "status nSensors")
                 restval_byte = self.serialConnection.read(2)
                 restval = restval_byte[0] + restval_byte[1]*256
-                print(restval, "restval nSensors")
-                self.config[slave]['sensors'][sensor]["restval"] = restval
+                #print(restval, "restval nSensors")
+                position_s = self.serialConnection.read(1)[0]
+                #print(position_s, "position_s")
+                self.config[position_m]['sensors'][position_s] = {}
+                self.config[position_m]['sensors'][position_s]["function"] = function
+                self.config[position_m]['sensors'][position_s]["status"] = status
+                self.config[position_m]['sensors'][position_s]["restval"] = restval
+                self.config[position_m]['sensors'][position_s]["position"] = position_s
         endline = self.serialConnection.readline()
-        print(endline)
+        #print(endline)
         if(endline != b"end\n"):
             return 1
-
+        #print(self.config)
         self.setJson()
 
         return 0
 
     def getEntry(self):
-        line = self.serialConnection.readline()
-        x = re.findall("S[0-9]S[0-9]D]*", str(line))
+        line = self.serialConnection.read(6)
+        x = re.findall("DATA", str(line[0:4]))
         if (x):
-            slave = x[0][0:2]
-            sensor = x[0][2:4]
-            sizeD = self.serialConnection.read(1)
-            nBytes = sizeD[0]
+            slave_pos = line[4]
+            sensor_pos = line[5]
+            sizeD = self.serialConnection.read(2)
+
+            nBytes = sizeD[0] + sizeD[1] * 256
             data = self.serialConnection.read(nBytes)
-            timeHeader = self.serialConnection.read(6)
 
-            # print(line)
-            # print(sizeD[0])
-            # print(data)
-            # print(timeHeader)
+            #print(line)
+            #print("Slave_pos", slave_pos)
+            #print("Sensor_pos", sensor_pos)
+            #print(sizeD)
+            #print(nBytes)
+            #print(data)
 
-            reString = slave + sensor + "T*"
-            x = re.findall(reString, str(timeHeader))
-            if (x):  # checks if time array has same info as data
-                sizeT = self.serialConnection.read(1)
-                nBytes = sizeT[0]
-                timeData = self.serialConnection.read(nBytes)
-            else:
-                print("Skipped because D == T not true")
+            if (nBytes == 0):
+                print("No data in package")
                 return 1
-        else:
-            print("Skipped because x not true")
-            return  1
-        if (nBytes == 0):
-            print("No data in package")
-            return 1
-        print(line)
-        print(sizeD[0])
-        print(data)
-        print(timeHeader)
-        print(sizeT[0])
-        print(timeData)
-        sData = []
-        tData = []
-        # convert data from byte array to int list
-        for c in range(0, len(data), 2):
-            # int.from_bytes(data[c]+data[c+1], "little")
-            print(data[c] + data[c + 1] * 256)
-            sData.append(data[c] + data[c + 1] * 256)
-        for c in timeData:
-            tData.append(c)
-        return (slave, sensor, sData, tData)
+
+            sData = []
+            # convert data from byte array to int list
+            #print("=================STARTED==================")
+            for c in range(0, len(data), 2):
+                # int.from_bytes(data[c]+data[c+1], "little")
+                ##print(data[c] + data[c + 1] * 256)
+                sData.append(data[c] + data[c + 1] * 256)
+            #print("=================FINISHED==================")
+            return (slave_pos, sensor_pos, sData)
+        return 1
 
     def run(self):
         self.getJson()
@@ -175,32 +160,35 @@ class serialThread (QThread):
 
                 entry = self.getEntry()
 
+
+
+
                 if not entry == 1:
-                    slave = entry[0]
-                    sensor = entry[1]
+                    slave_pos = entry[0]
+                    sensor_pos = entry[1]
                     sData = entry[2]
-                    tData = entry[3]
+
 
                     #Check if Slave exists in DB
-                    if slave not in self.config:
-                        print("Skipped because slave doesnt exist in setup")
+                    if slave_pos not in self.config:
+                        print("Skipped because slave:", slave_pos, "doesnt exist in setup")
                         continue #Skip if slave doesnt exist in setup
                     #Check if Sensor exists in DB
-                    if sensor not in self.config[slave]:
-                        print("Skipped because sensor doesnt exist in setup")
+                    if sensor_pos not in self.config[slave_pos]["sensors"]:
+                        print("Skipped because sensor:", sensor_pos, " doesnt exist in setup")
                         continue  # Skip if sensor doesnt exist in setup
-                    if 'entries' not in self.config[slave][sensor]:
-                        self.config[slave][sensor]['entries'] = []
+                    if 'entries' not in self.config[slave_pos]["sensors"][sensor_pos]:
+                        self.config[slave_pos]["sensors"][sensor_pos]['entries'] = []
 
-                    currentid = len(self.config[slave][sensor]['entries'])
+                    currentid = len(self.config[slave_pos]["sensors"][sensor_pos]['entries'])
 
-                    newEntry = {'id': currentid, 'size': len(sData), 'data': sData, 'time': tData}
+                    newEntry = {'id': currentid, 'size': len(sData), 'data': sData}
 
-                    self.config[slave][sensor]['entries'].append(newEntry)
+                    self.config[slave_pos]["sensors"][sensor_pos]['entries'].append(newEntry)
 
                     self.setJson()
 
                     self.addEntrySignal.emit()
-
+                    #print("================ENTRY ADDED================")
 
         self.serialConnection.close()
