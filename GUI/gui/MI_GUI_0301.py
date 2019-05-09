@@ -142,6 +142,9 @@ class Ui_MainWindow(object):
         self.tabWidgetGraphs.addTab(self.G10, "")
         self.G14 = QtWidgets.QWidget()
         self.G14.setObjectName("G14")
+        self.graphWindowG14 = GraphicsLayoutWidget(self.G14)
+        self.graphWindowG14.setGeometry(QtCore.QRect(0, 40, 931, 571))
+        self.graphWindowG14.setObjectName("graphWindowG14")
         self.tabWidgetGraphs.addTab(self.G14, "")
         self.sensorEntryListWidget = QtWidgets.QListWidget(self.centralwidget)
         self.sensorEntryListWidget.setGeometry(QtCore.QRect(20, 250, 189, 441))
@@ -163,7 +166,7 @@ class Ui_MainWindow(object):
         MainWindow.setMenuBar(self.menubar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidgetGraphs.setCurrentIndex(1)
+        self.tabWidgetGraphs.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
