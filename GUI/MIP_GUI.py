@@ -136,7 +136,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.g14_w4_l = LegendItem((80, 30), offset=(60, 30))
         self.g14_w4_l.setParentItem(self.g14_w4)
 
-        self.addEntry()
+        self.addEntry("All")
 
         #initialize combo box
         self.getCOMList()
@@ -171,7 +171,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #self.processThread = processThread(2, "Process", self.d_lock, self.c_lock)
 
         #Signal from Thread
-        self.processThread.addEntrySignal.connect(self.addEntry)
+        self.processThread.addEntrySignal[dict].connect(self.addEntry)
 
         self.processThread.rawConfigFile = self.saveRawFile
         self.processThread.rawConfigFileBU = self.saveRawFileBackup
@@ -220,8 +220,93 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         print(self.serialListenerThread.isRunning())
         self.ui.connectionStatusLabel.setText("Connection Status: Offline")
 
-    def addEntry(self):
-        print("Triggered Entry")
+    def addEntry(self, toBeUpdated):
+        if toBeUpdated == "All":
+            updateAll = True
+
+            m14_sl0 = True
+            m14_sl1 = True
+            m14_sl2 = True
+            m14_acelx = True
+            m14_acely = True
+            m14_acelz = True
+            m14_sl3 = True
+            m14_sl4 = True
+            m14_sl5 = True
+
+            m10acelx = True
+            m10acely = True
+            m10acelz = True
+            m10forc = True
+
+            g14_hall1 = True
+            g14_hall2 = True
+            g14_curr1 = True
+            g14_curr2 = True
+            g14_volt1 = True
+            g14_volt2 = True
+            g14_pulse1 = True
+            g14_pulse2 = True
+            g14_slhe = True
+            g14_slhd = True
+            g14_slve = True
+            g14_slvd = True
+
+            g10_tof = True
+            g10_EL1 = True
+            g10_EL2 = True
+            g10_hall1 = True
+            g10_hall2 = True
+            g10_volt1 = True
+            g10_volt2 = True
+            g10_curr1 = True
+            g10_curr2 = True
+            g10_pulse1 = True
+            g10_pulse2 = True
+            
+        else:
+            updateAll = False
+
+            m14_sl0 = False
+            m14_sl1 = False
+            m14_sl2 = False
+            m14_acelx = False
+            m14_acely = False
+            m14_acelz = False
+            m14_sl3 = False
+            m14_sl4 = False
+            m14_sl5 = False
+
+            m10acelx = False
+            m10acely = False
+            m10acelz = False
+            m10forc = False
+
+            g14_hall1 = False
+            g14_hall2 = False
+            g14_curr1 = False
+            g14_curr2 = False
+            g14_volt1 = False
+            g14_volt2 = False
+            g14_pulse1 = False
+            g14_pulse2 = False
+            g14_slhe = False
+            g14_slhd = False
+            g14_slve = False
+            g14_slvd = False
+
+            g10_tof = False
+            g10_EL1 = False
+            g10_EL2 = False
+            g10_hall1 = False
+            g10_hall2 = False
+            g10_volt1 = False
+            g10_volt2 = False
+            g10_curr1 = False
+            g10_curr2 = False
+            g10_pulse1 = False
+            g10_pulse2 = False
+
         # Used on trigger by thread signal
         self.d_lock.acquire()
 
@@ -240,6 +325,88 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             None
         self.d_lock.release()
 
+        print("toBeUpdates", toBeUpdated)
+        if not updateAll:
+            for slaveKey in toBeUpdated:
+                for sensorKey in toBeUpdated[slaveKey]:
+                    
+                    if int(slaveKey) == 1 and int(sensorKey) == 17:
+                        m14_sl0 = True
+                    elif int(slaveKey) == 1 and int(sensorKey) == 18:
+                        m14_sl1 = True
+                    elif int(slaveKey) == 1 and int(sensorKey) == 19:
+                        m14_sl2 = True
+                    elif int(slaveKey) == 1 and int(sensorKey) == 33:
+                        m14_acelx = True
+                    elif int(slaveKey) == 1 and int(sensorKey) == 34:
+                        m14_acely = True
+                    elif int(slaveKey) == 1 and int(sensorKey) == 35:
+                        m14_acelz = True
+                    elif int(slaveKey) == 1 and int(sensorKey) == 49:
+                        m14_sl3 = True
+                    elif int(slaveKey) == 1 and int(sensorKey) == 50:
+                        m14_sl4 = True
+                    elif int(slaveKey) == 1 and int(sensorKey) == 51:
+                        m14_sl5 = True
+                    
+                    elif int(slaveKey) == 2 and int(sensorKey) == 17:
+                        m10acelx = True
+                    elif int(slaveKey) == 2 and int(sensorKey) == 18:
+                        m10acely = True
+                    elif int(slaveKey) == 2 and int(sensorKey) == 19:
+                        m10acelz = True
+                    elif int(slaveKey) == 2 and int(sensorKey) == 33:
+                        m10forc = True
+
+                    elif int(slaveKey) == 3 and int(sensorKey) == 11:
+                        g14_hall1 = True
+                    elif int(slaveKey) == 3 and int(sensorKey) == 12:
+                        g14_hall2 = True
+                    elif int(slaveKey) == 3 and int(sensorKey) == 21:
+                        g14_curr1 = True
+                    elif int(slaveKey) == 3 and int(sensorKey) == 22:
+                        g14_curr2 = True
+                    elif int(slaveKey) == 3 and int(sensorKey) == 31:
+                        g14_volt1 = True
+                    elif int(slaveKey) == 3 and int(sensorKey) == 32:
+                        g14_volt2 = True
+                    elif int(slaveKey) == 3 and int(sensorKey) == 41:
+                        g14_pulse1 = True
+                    elif int(slaveKey) == 3 and int(sensorKey) == 42:
+                        g14_pulse2 = True
+                    elif int(slaveKey) == 3 and int(sensorKey) == 51:
+                        g14_slhe = True
+                    elif int(slaveKey) == 3 and int(sensorKey) == 52:
+                        g14_slhd = True
+                    elif int(slaveKey) == 3 and int(sensorKey) == 61:
+                        g14_slve = True
+                    elif int(slaveKey) == 3 and int(sensorKey) == 62:
+                        g14_slvd = True
+
+                    elif int(slaveKey) == 4 and int(sensorKey) == 11:
+                        g10_tof = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 21:
+                        g10_EL1 = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 22:
+                        g10_EL2 = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 31:
+                        g10_hall1 = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 32:
+                        g10_hall2 = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 41:
+                        g10_volt1 = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 42:
+                        g10_volt2 = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 51:
+                        g10_curr1 = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 52:
+                        g10_curr2 = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 61:
+                        g10_pulse1 = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 62:
+                        g10_pulse2 = True
+
+
         # UPDATE data lists
 
         # M10
@@ -255,33 +422,37 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.m10_forca_y = []
 
         # m10_acelx
-        try:
-            self.m10_acelx_x = self.Entries["2"]["sensors"]["17"]["time"]
-            self.m10_acelx_y = self.Entries["2"]["sensors"]["17"]["dataR"]
-            m10acelx = True
-        except Exception:
-            m10acelx = False
+        if m10acelx:
+            try:
+                self.m10_acelx_x = self.Entries["2"]["sensors"]["17"]["time"]
+                self.m10_acelx_y = self.Entries["2"]["sensors"]["17"]["dataNR"]
+            except Exception:
+                None
+
         # m10_acely
-        try:
-            self.m10_acely_x = self.Entries["2"]["sensors"]["18"]["time"]
-            self.m10_acely_y = self.Entries["2"]["sensors"]["18"]["dataR"]
-            m10acely = True
-        except Exception:
-            m10acely = False
+        if m10acely:
+            try:
+                self.m10_acely_x = self.Entries["2"]["sensors"]["18"]["time"]
+                self.m10_acely_y = self.Entries["2"]["sensors"]["18"]["dataNR"]
+            except Exception:
+                None
+
         # m10_acelz
-        try:
-            self.m10_acelz_x = self.Entries["2"]["sensors"]["19"]["time"]
-            self.m10_acelz_y = self.Entries["2"]["sensors"]["19"]["dataR"]
-            m10acelz = True
-        except Exception:
-            m10acelz = False
+        if m10acelz:
+            try:
+                self.m10_acelz_x = self.Entries["2"]["sensors"]["19"]["time"]
+                self.m10_acelz_y = self.Entries["2"]["sensors"]["19"]["dataNR"]
+            except Exception:
+                None
+
         # m10_forca_x
-        try:
-            self.m10_forca_x = self.Entries["2"]["sensors"]["33"]["time"]
-            self.m10_forca_y = self.Entries["2"]["sensors"]["33"]["dataR"]
-            m10forc = True
-        except Exception:
-            m10forc = False
+        if m10forc:
+            try:
+                self.m10_forca_x = self.Entries["2"]["sensors"]["33"]["time"]
+                self.m10_forca_y = self.Entries["2"]["sensors"]["33"]["dataR"]
+            except Exception:
+                None
+
 
         # M14
 
@@ -308,70 +479,76 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # CLEAR lists
 
         # m14_acelx
-        try:
-            self.m14_acelx_x = self.Entries["1"]["sensors"]["33"]["time"]
-            self.m14_acelx_y = self.Entries["1"]["sensors"]["33"]["dataNR"]
-            m14_acelx = True
-        except Exception:
-            m14_acelx = False
+        if m14_acelx:
+            try:
+                self.m14_acelx_x = self.Entries["1"]["sensors"]["33"]["time"]
+                self.m14_acelx_y = self.Entries["1"]["sensors"]["33"]["dataNR"]
+            except Exception:
+                None
 
         # m14_acely
-        try:
-            self.m14_acely_x = self.Entries["1"]["sensors"]["34"]["time"]
-            self.m14_acely_y = self.Entries["1"]["sensors"]["34"]["dataNR"]
-            m14_acely = True
-        except Exception:
-            m14_acely = False
+        if m14_acely:
+            try:
+                self.m14_acely_x = self.Entries["1"]["sensors"]["34"]["time"]
+                self.m14_acely_y = self.Entries["1"]["sensors"]["34"]["dataNR"]
+            except Exception:
+                None
 
         # m14_acelz
-        try: 
-            self.m14_acelz_x = self.Entries["1"]["sensors"]["35"]["time"]
-            self.m14_acelz_y = self.Entries["1"]["sensors"]["35"]["dataNR"]
-            m14_acelz = True
-        except Exception:
-            m14_acelz = False
+        if m14_acelz:
+            try:
+                self.m14_acelz_x = self.Entries["1"]["sensors"]["35"]["time"]
+                self.m14_acelz_y = self.Entries["1"]["sensors"]["35"]["dataNR"]
+            except Exception:
+                None
+
         # m14_sl0
-        try: 
-            self.m14_sl0_x = self.Entries["1"]["sensors"]["17"]["time"]
-            self.m14_sl0_y = self.Entries["1"]["sensors"]["17"]["dataR"]
-            m14_sl0 = True
-        except Exception:
-            m14_sl0 = False
+        if m14_sl0:
+            try:
+                self.m14_sl0_x = self.Entries["1"]["sensors"]["17"]["time"]
+                self.m14_sl0_y = self.Entries["1"]["sensors"]["17"]["dataR"]
+            except Exception:
+                None
+
         # m14_sl1
-        try: 
-            self.m14_sl1_x = self.Entries["1"]["sensors"]["18"]["time"]
-            self.m14_sl1_y = self.Entries["1"]["sensors"]["18"]["dataR"]
-            m14_sl1 = True
-        except Exception:
-            m14_sl1 = False
+        if m14_sl1:
+            try:
+                self.m14_sl1_x = self.Entries["1"]["sensors"]["18"]["time"]
+                self.m14_sl1_y = self.Entries["1"]["sensors"]["18"]["dataR"]
+            except Exception:
+                None
+
         # m14_sl2
-        try: 
-            self.m14_sl2_x = self.Entries["1"]["sensors"]["19"]["time"]
-            self.m14_sl2_y = self.Entries["1"]["sensors"]["19"]["dataR"]
-            m14_sl2 = True
-        except Exception:
-            m14_sl2 = False
+        if m14_sl2:
+            try:
+                self.m14_sl2_x = self.Entries["1"]["sensors"]["19"]["time"]
+                self.m14_sl2_y = self.Entries["1"]["sensors"]["19"]["dataR"]
+            except Exception:
+                None
+
         # m14_sl3
-        try: 
-            self.m14_sl3_x = self.Entries["1"]["sensors"]["49"]["time"]
-            self.m14_sl3_y = self.Entries["1"]["sensors"]["49"]["dataR"]
-            m14_sl3 = True
-        except Exception:
-            m14_sl3 = False
+        if m14_sl3:
+            try:
+                self.m14_sl3_x = self.Entries["1"]["sensors"]["49"]["time"]
+                self.m14_sl3_y = self.Entries["1"]["sensors"]["49"]["dataR"]
+            except Exception:
+                None
+
         # m14_sl4
-        try: 
-            self.m14_sl4_x = self.Entries["1"]["sensors"]["50"]["time"]
-            self.m14_sl4_y = self.Entries["1"]["sensors"]["50"]["dataR"]
-            m14_sl4 = True
-        except Exception:
-            m14_sl4 = False
+        if m14_sl4:
+            try:
+                self.m14_sl4_x = self.Entries["1"]["sensors"]["50"]["time"]
+                self.m14_sl4_y = self.Entries["1"]["sensors"]["50"]["dataR"]
+            except Exception:
+                None
+
         # m14_sl5
-        try: 
-            self.m14_sl5_x = self.Entries["1"]["sensors"]["51"]["time"]
-            self.m14_sl5_y = self.Entries["1"]["sensors"]["51"]["dataR"]
-            m14_sl5 = True
-        except Exception:
-            m14_sl5 = False
+        if m14_sl5:
+            try:
+                self.m14_sl5_x = self.Entries["1"]["sensors"]["51"]["time"]
+                self.m14_sl5_y = self.Entries["1"]["sensors"]["51"]["dataR"]
+            except Exception:
+                None
 
         # G10
 
@@ -409,95 +586,93 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # CLEAR lists
 
         # g10_volt1
-        try:
-            for data in self.Entries["4"]["sensors"]["41"]["entries"]:
-                self.g10_volt1_y = self.g10_volt1_y + data["data"]
-            self.g10_volt1_x = [i for i in range(len(self.g10_volt1_y))]
-            g10_volt1 = True
-        except Exception:
-            g10_volt1 = False
+        if g10_volt1:
+            try:
+                self.g10_volt1_x = self.Entries["4"]["sensors"]["41"]["time"]
+                self.g10_volt1_y = self.Entries["4"]["sensors"]["41"]["dataR"]
+            except Exception:
+                None
 
         # g10_volt2
-        try:
-            for data in self.Entries["4"]["sensors"]["42"]["entries"]:
-                self.g10_volt2_y = self.g10_volt2_y + data["data"]
-            self.g10_volt2_x = [i for i in range(len(self.g10_volt2_y))]
-            g10_volt2 = True
-        except Exception:
-            g10_volt2 = False
+        if g10_volt2:
+            try:
+                self.g10_volt2_x = self.Entries["4"]["sensors"]["42"]["time"]
+                self.g10_volt2_y = self.Entries["4"]["sensors"]["42"]["dataR"]
+            except Exception:
+                None
 
         # g10_curr1
-        try:
-            for data in self.Entries["4"]["sensors"]["51"]["entries"]:
-                self.g10_curr1_y = self.g10_curr1_y + data["data"]
-            self.g10_curr1_x = [i for i in range(len(self.g10_curr1_y))]
-            g10_curr1 = True
-        except Exception:
-            g10_curr1 = False
+        if g10_curr1:
+            try:
+                self.g10_curr1_x = self.Entries["4"]["sensors"]["51"]["time"]
+                self.g10_curr1_y = self.Entries["4"]["sensors"]["51"]["dataR"]
+            except Exception:
+                None
+
         # g10_curr2
-        try:
-            for data in self.Entries["4"]["sensors"]["52"]["entries"]:
-                self.g10_curr2_y = self.g10_curr2_y + data["data"]
-            self.g10_curr2_x = [i for i in range(len(self.g10_curr2_y))]
-            g10_curr2 = True
-        except Exception:
-            g10_curr2 = False
+        if g10_curr2:
+            try:
+                self.g10_curr2_x = self.Entries["4"]["sensors"]["52"]["time"]
+                self.g10_curr2_y = self.Entries["4"]["sensors"]["52"]["dataR"]
+            except Exception:
+                None
+
         # g10_hall1
-        try:
-            for data in self.Entries["4"]["sensors"]["31"]["entries"]:
-                self.g10_hall1_y = self.g10_hall1_y + data["data"]
-            self.g10_hall1_x = [i for i in range(len(self.g10_hall1_y))]
-            g10_hall1 = True
-        except Exception:
-            g10_hall1 = False
+        if g10_hall1:
+            try:
+                self.g10_hall1_x = self.Entries["4"]["sensors"]["31"]["time"]
+                self.g10_hall1_y = self.Entries["4"]["sensors"]["31"]["dataR"]
+            except Exception:
+                None
+
         # g10_hall2
-        try:
-            for data in self.Entries["4"]["sensors"]["32"]["entries"]:
-                self.g10_hall2_y = self.g10_hall2_y + data["data"]
-            self.g10_hall2_x = [i for i in range(len(self.g10_hall2_y))]
-            g10_hall2 = True
-        except Exception:
-            g10_hall2 = False
+        if g10_hall2:
+            try:
+                self.g10_hall2_x = self.Entries["4"]["sensors"]["32"]["time"]
+                self.g10_hall2_y = self.Entries["4"]["sensors"]["32"]["dataR"]
+            except Exception:
+                None
+
         # g10_pulse1
-        try:
-            for data in self.Entries["4"]["sensors"]["61"]["entries"]:
-                self.g10_pulse1_y = self.g10_pulse1_y + data["data"]
-            self.g10_pulse1_x = [i for i in range(len(self.g10_pulse1_y))]
-            g10_pulse1 = True
-        except Exception:
-            g10_pulse1 = False
+        if g10_pulse1:
+            try:
+                self.g10_pulse1_x = self.Entries["4"]["sensors"]["61"]["time"]
+                self.g10_pulse1_y = self.Entries["4"]["sensors"]["61"]["dataR"]
+            except Exception:
+                None
+
         # g10_pulse2
-        try:
-            for data in self.Entries["4"]["sensors"]["62"]["entries"]:
-                self.g10_pulse2_y = self.g10_pulse2_y + data["data"]
-            self.g10_pulse2_x = [i for i in range(len(self.g10_pulse2_y))]
-            g10_pulse2 = True
-        except Exception:
-            g10_pulse2 = False
+        if g10_pulse2:
+            try:
+                self.g10_pulse2_x = self.Entries["4"]["sensors"]["62"]["time"]
+                self.g10_pulse2_y = self.Entries["4"]["sensors"]["62"]["dataR"]
+            except Exception:
+                None
+
         # g10_tof
-        try:
-            for data in self.Entries["4"]["sensors"]["61"]["entries"]:
-                self.g10_tof_y = self.g10_tof_y + data["data"]
-            self.g10_tof_x = [i for i in range(len(self.g10_tof_y))]
-            g10_tof = True
-        except Exception:
-            g10_tof = False
+        if g10_tof:
+            try:
+                self.g10_tof_x = self.Entries["4"]["sensors"]["11"]["time"]
+                self.g10_tof_y = self.Entries["4"]["sensors"]["11"]["dataR"]
+            except Exception:
+                None
+
         # g10_EL1
-        try:
-            for data in self.Entries["4"]["sensors"]["21"]["entries"]:
-                self.g10_EL1_y = self.g10_EL1_y + data["data"]
-            self.g10_EL1_x = [i for i in range(len(self.g10_EL1_y))]
-            g10_EL1 = True
-        except Exception:
-            g10_EL1 = False
+        if g10_EL1:
+            try:
+                self.g10_EL1_x = self.Entries["4"]["sensors"]["21"]["time"]
+                self.g10_EL1_y = self.Entries["4"]["sensors"]["21"]["dataR"]
+            except Exception:
+                None
+
         # g10_EL2
-        try:
-            for data in self.Entries["4"]["sensors"]["22"]["entries"]:
-                self.g10_EL2_y = self.g10_EL2_y + data["data"]
-            self.g10_EL2_x = [i for i in range(len(self.g10_EL2_y))]
-            g10_EL2 = True
-        except Exception:
-            g10_EL2 = False
+        if g10_EL2:
+            try:
+                self.g10_EL2_x = self.Entries["4"]["sensors"]["22"]["time"]
+                self.g10_EL2_y = self.Entries["4"]["sensors"]["22"]["dataR"]
+            except Exception:
+                None
+
         # TODO add potencia
 
         # G14
@@ -538,103 +713,100 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # CLEAR lists
 
         # g14_volt1
-        try:
-            for data in self.Entries["3"]["sensors"]["31"]["entries"]:
-                self.g14_volt1_y = self.g14_volt1_y + data["data"]
-            self.g14_volt1_x = [i for i in range(len(self.g14_volt1_y))]
-            g14_volt1 = True
-        except Exception:
-            g14_volt1 = False
+        if g14_volt1:
+            try:
+                self.g14_volt1_y = self.Entries["3"]["sensors"]["31"]["time"]
+                self.g14_volt1_x = self.Entries["3"]["sensors"]["31"]["dataR"]
+            except Exception:
+                None
 
         # g14_volt2
-        try:
-            for data in self.Entries["3"]["sensors"]["32"]["entries"]:
-                self.g14_volt2_y = self.g14_volt2_y + data["data"]
-            self.g14_volt2_x = [i for i in range(len(self.g14_volt2_y))]
-            g14_volt2 = True
-        except Exception:
-            g14_volt2 = False
+        if g14_volt2:
+            try:
+                self.g14_volt2_y = self.Entries["3"]["sensors"]["32"]["time"]
+                self.g14_volt2_x = self.Entries["3"]["sensors"]["32"]["dataR"]
+            except Exception:
+                None
 
         # g14_curr1
-        try:
-            for data in self.Entries["3"]["sensors"]["21"]["entries"]:
-                self.g14_curr1_y = self.g14_curr1_y + data["data"]
-            self.g14_curr1_x = [i for i in range(len(self.g14_curr1_y))]
-            g14_curr1 = True
-        except Exception:
-            g14_curr1 = False
+        if g14_curr1:
+            try:
+                self.g14_curr1_y = self.Entries["3"]["sensors"]["21"]["time"]
+                self.g14_curr1_x = self.Entries["3"]["sensors"]["21"]["dataR"]
+            except Exception:
+                None
+
         # g14_curr2
-        try:
-            for data in self.Entries["3"]["sensors"]["22"]["entries"]:
-                self.g14_curr2_y = self.g14_curr2_y + data["data"]
-            self.g14_curr2_x = [i for i in range(len(self.g14_curr2_y))]
-            g14_curr2 = True
-        except Exception:
-            g14_curr2 = False
+        if g14_curr2:
+            try:
+                self.g14_curr2_y = self.Entries["3"]["sensors"]["22"]["time"]
+                self.g14_curr2_x = self.Entries["3"]["sensors"]["22"]["dataR"]
+            except Exception:
+                None
+
         # g14_hall1
-        try:
-            for data in self.Entries["3"]["sensors"]["11"]["entries"]:
-                self.g14_hall1_y = self.g14_hall1_y + data["data"]
-            self.g14_hall1_x = [i for i in range(len(self.g14_hall1_y))]
-            g14_hall1 = True
-        except Exception:
-            g14_hall1 = False
+        if g14_hall1:
+            try:
+                self.g14_hall1_y = self.Entries["3"]["sensors"]["11"]["time"]
+                self.g14_hall1_x = self.Entries["3"]["sensors"]["11"]["dataR"]
+            except Exception:
+                None
+
         # g14_hall2
-        try:
-            for data in self.Entries["3"]["sensors"]["12"]["entries"]:
-                self.g14_hall2_y = self.g14_hall2_y + data["data"]
-            self.g14_hall2_x = [i for i in range(len(self.g14_hall2_y))]
-            g14_hall2 = True
-        except Exception:
-            g14_hall2 = False
+        if g14_hall2:
+            try:
+                self.g14_hall2_y = self.Entries["3"]["sensors"]["12"]["time"]
+                self.g14_hall2_x = self.Entries["3"]["sensors"]["12"]["dataR"]
+            except Exception:
+                None
+
         # g14_pulse1
-        try:
-            for data in self.Entries["3"]["sensors"]["71"]["entries"]:
-                self.g14_pulse1_y = self.g14_pulse1_y + data["data"]
-            self.g14_pulse1_x = [i for i in range(len(self.g14_pulse1_y))]
-            g14_pulse1 = True
-        except Exception:
-            g14_pulse1 = False
+        if g14_pulse1:
+            try:
+                self.g14_pulse1_y = self.Entries["3"]["sensors"]["71"]["time"]
+                self.g14_pulse1_x = self.Entries["3"]["sensors"]["71"]["dataR"]
+            except Exception:
+                None
+
         # g14_pulse2
-        try:
-            for data in self.Entries["3"]["sensors"]["72"]["entries"]:
-                self.g14_pulse2_y = self.g14_pulse2_y + data["data"]
-            self.g14_pulse2_x = [i for i in range(len(self.g14_pulse2_y))]
-            g14_pulse2 = True
-        except Exception:
-            g14_pulse2 = False
+        if g14_pulse2:
+            try:
+                self.g14_pulse2_y = self.Entries["3"]["sensors"]["72"]["time"]
+                self.g14_pulse2_x = self.Entries["3"]["sensors"]["72"]["dataR"]
+            except Exception:
+                None
+
             # g14_slhe
-        try:
-            for data in self.Entries["3"]["sensors"]["51"]["entries"]:
-                self.g14_slhe_y = self.g14_slhe_y + data["data"]
-            self.g14_slhe_x = [i for i in range(len(self.g14_slhe_y))]
-            g14_slhe = True
-        except Exception:
-            g14_slhe = False
+        if g14_slhe:
+            try:
+                self.g14_slhe_y = self.Entries["3"]["sensors"]["51"]["time"]
+                self.g14_slhe_x = self.Entries["3"]["sensors"]["51"]["dataR"]
+            except Exception:
+                None
+
         # g14_slhd
-        try:
-            for data in self.Entries["3"]["sensors"]["52"]["entries"]:
-                self.g14_slhd_y = self.g14_slhd_y + data["data"]
-            self.g14_slhd_x = [i for i in range(len(self.g14_slhd_y))]
-            g14_slhd = True
-        except Exception:
-            g14_slhd = False
+        if g14_slhd:
+            try:
+                self.g14_slhd_y = self.Entries["3"]["sensors"]["52"]["time"]
+                self.g14_slhd_x = self.Entries["3"]["sensors"]["52"]["dataR"]
+            except Exception:
+                None
+
         # g14_slve
-        try:
-            for data in self.Entries["3"]["sensors"]["61"]["entries"]:
-                self.g14_slve_y = self.g14_slve_y + data["data"]
-            self.g14_slve_x = [i for i in range(len(self.g14_slve_y))]
-            g14_slve = True
-        except Exception:
-            g14_slve = False
+        if g14_slve:
+            try:
+                self.g14_slve_y = self.Entries["3"]["sensors"]["61"]["time"]
+                self.g14_slve_x = self.Entries["3"]["sensors"]["61"]["dataR"]
+            except Exception:
+                None
+
         # g14_slvd
-        try:
-            for data in self.Entries["3"]["sensors"]["62"]["entries"]:
-                self.g14_slvd_y = self.g14_slvd_y + data["data"]
-            self.g14_slvd_x = [i for i in range(len(self.g14_slvd_y))]
-            g14_slvd = True
-        except Exception:
-            g14_slvd = False
+        if g14_slvd:
+            try:
+                self.g14_slvd_y = self.Entries["3"]["sensors"]["62"]["time"]
+                self.g14_slvd_x = self.Entries["3"]["sensors"]["62"]["dataR"]
+            except Exception:
+                None
 
         if (m10acelx or m10acely or m10acelz or m10forc):
             m10 = (m10acelx, m10acely, m10acelz, m10forc)
@@ -644,32 +816,31 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             m14 = (m14_acelx, m14_acely, m14_acelz, m14_sl0, m14_sl1, m14_sl2, m14_sl3, m14_sl4, m14_sl5)
         else:
             m14 = None
-        if (
-                g10_volt1 or g10_volt2 or g10_curr1 or g10_curr2 or g10_hall1 or g10_hall2 or g10_pulse1 or g10_pulse2 or g10_tof or g10_EL1 or g10_EL2):
-            g10 = (
-            g10_volt1, g10_volt2, g10_curr1, g10_curr2, g10_hall1, g10_hall2, g10_pulse1, g10_pulse2, g10_tof, g10_EL1,
-            g10_EL2)
+        if (g10_volt1 or g10_volt2 or g10_curr1 or g10_curr2 or g10_hall1 or g10_hall2 or g10_pulse1 or g10_pulse2 or g10_tof or g10_EL1 or g10_EL2):
+            g10 = (g10_volt1, g10_volt2, g10_curr1, g10_curr2, g10_hall1, g10_hall2, g10_pulse1, g10_pulse2, g10_tof, g10_EL1, g10_EL2)
         else:
             g10 = None
-        if (
-                g14_volt1 or g14_volt2 or g14_curr1 or g14_curr2 or g14_hall1 or g14_hall2 or g14_pulse1 or g14_pulse2 or g14_slhe or g14_slhd or g14_slve or g14_slvd):
-            g14 = (g14_volt1, g14_volt2, g14_curr1, g14_curr2, g14_hall1, g14_hall2, g14_pulse1, g14_pulse2, g14_slhe,
-                   g14_slhd, g14_slve, g14_slvd)
+        if (g14_volt1 or g14_volt2 or g14_curr1 or g14_curr2 or g14_hall1 or g14_hall2 or g14_pulse1 or g14_pulse2 or g14_slhe or g14_slhd or g14_slve or g14_slvd):
+            g14 = (g14_volt1, g14_volt2, g14_curr1, g14_curr2, g14_hall1, g14_hall2, g14_pulse1, g14_pulse2, g14_slhe, g14_slhd, g14_slve, g14_slvd)
         else:
             g14 = None
 
         self.updatePlots(m10=m10, m14=m14, g10=g10, g14=g14)
 
     def updatePlots(self, m10=None, m14=None, g10=None, g14=None):
+        print("M10", m10)
+        print("M14", m14)
+        print("G10", g10)
+        print("G14", g14)
 
         if (m10):
             self.addPlotM10(m10)
         if (m14):
             self.addPlotM14(m14)
-        if (m14):
-            self.addPlotM14(m14)
-        if (m14):
-            self.addPlotM14(m14)
+        if (g10):
+            self.addPlotG10(g10)
+        if (g14):
+            self.addPlotG14(g14)
 
     def addRawEntry(self):
         self.processThread.newRawEvent.set()
@@ -799,7 +970,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for item in self.g10_w1.listDataItems():
                 if item.name() == "g10_curr1":
                     self.g10_w1.removeItem(item)
-            g10_curr1 = self.g10_w1.plot(self.g10_curr1, self.g10_curr1, pen='b', name="Curr 1")
+            g10_curr1 = self.g10_w1.plot(self.g10_curr1_x, self.g10_curr1_y, pen='b', name="Curr 1")
             self.g10_w1_l.removeItem('g10_curr1')
             self.g10_w1_l.addItem(g10_curr1, 'g10_curr1')
         if (g10[3]):
@@ -890,7 +1061,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for item in self.g14_w1.listDataItems():
                 if item.name() == "g14_curr1":
                     self.g14_w1.removeItem(item)
-            g14_curr1 = self.g14_w1.plot(self.g14_curr1, self.g14_curr1, pen='b', name="Curr 1")
+            g14_curr1 = self.g14_w1.plot(self.g14_curr1_x, self.g14_curr1_y, pen='b', name="Curr 1")
             self.g14_w1_l.removeItem('g14_curr1')
             self.g14_w1_l.addItem(g14_curr1, 'g14_curr1')
         if (g14[3]):

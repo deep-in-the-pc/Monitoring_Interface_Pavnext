@@ -12,7 +12,7 @@ from gui.graphUtil import *
 
 class processThread (QThread):
 
-    addEntrySignal = pyqtSignal()
+    addEntrySignal = pyqtSignal(dict)
     closedSignal = pyqtSignal()
 
     def __init__(self, threadID, name, d_lock, c_lock):
@@ -72,9 +72,11 @@ class processThread (QThread):
             if (self.config == None):
                 self.getRawJson()
             if self.newRawEvent.is_set():
+                toBeUpdated = {}
                 self.getRawJson()
                 self.newRawEvent.clear()
                 for slaveKey in self.config:
+                    toBeUpdated[slaveKey]=[]
                     if slaveKey not in self.entries:
                         self.entries[slaveKey] = {"sensors":{}}
                     for sensorKey in self.config[slaveKey]['sensors']:
@@ -88,10 +90,12 @@ class processThread (QThread):
                             if sensorDataEntry['id'] in self.entries[slaveKey]['sensors'][sensorKey]['dataList']:
                                 continue
                             else:
-                                print(self.config[slaveKey], sensorKey, sensorDataEntry['id'])
+
+                                if sensorKey not in toBeUpdated[slaveKey]:
+                                    toBeUpdated[slaveKey].append(sensorKey)
+
                                 self.entries[slaveKey]['sensors'][sensorKey]['dataList'].append(sensorDataEntry['id'])
                                 (dataR, dataNR) = dataConverter(self.config[slaveKey], sensorKey, sensorDataEntry['id'])
-                                print(dataR, dataNR)
                                 if(dataR):
                                     if 'dataR' not in self.entries[slaveKey]['sensors'][sensorKey]:
                                         self.entries[slaveKey]['sensors'][sensorKey]['dataR'] = []
@@ -108,8 +112,6 @@ class processThread (QThread):
                     #TODO Check type of entry
                     #TODO Process for type of entry
                     #TODO Save processed data
-                print(self.config)
-                print(self.entries)
                 self.setJson()
 
-                self.addEntrySignal.emit()
+                self.addEntrySignal.emit(toBeUpdated)
