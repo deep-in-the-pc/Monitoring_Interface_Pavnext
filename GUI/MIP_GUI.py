@@ -310,7 +310,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # m14_acelx
         try:
             self.m14_acelx_x = self.Entries["1"]["sensors"]["33"]["time"]
-            self.m14_acelx_y = self.Entries["1"]["sensors"]["33"]["dataR"]
+            self.m14_acelx_y = self.Entries["1"]["sensors"]["33"]["dataNR"]
             m14_acelx = True
         except Exception:
             m14_acelx = False
@@ -318,7 +318,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # m14_acely
         try:
             self.m14_acely_x = self.Entries["1"]["sensors"]["34"]["time"]
-            self.m14_acely_y = self.Entries["1"]["sensors"]["34"]["dataR"]
+            self.m14_acely_y = self.Entries["1"]["sensors"]["34"]["dataNR"]
             m14_acely = True
         except Exception:
             m14_acely = False
@@ -326,7 +326,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # m14_acelz
         try: 
             self.m14_acelz_x = self.Entries["1"]["sensors"]["35"]["time"]
-            self.m14_acelz_y = self.Entries["1"]["sensors"]["35"]["dataR"]
+            self.m14_acelz_y = self.Entries["1"]["sensors"]["35"]["dataNR"]
             m14_acelz = True
         except Exception:
             m14_acelz = False
@@ -672,9 +672,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.addPlotM14(m14)
 
     def addRawEntry(self):
-        print("Am i running?", self.processThread.isRunning())
-        print("got new raw entry")
-        self.processThread.start()
         self.processThread.newRawEvent.set()
 
     def addPlotM10(self, m10):
@@ -711,7 +708,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def addPlotM14(self, m14):
         # ADD PLOT PROCEDURE
-
         if (m14[3]):
             for item in self.m14_w1.listDataItems():
                 if item.name() == "sl0":

@@ -32,12 +32,10 @@ class processThread (QThread):
         try:
             with open(self.rawConfigFile) as json_file:
                 self.config = json.load(json_file)
-                print("Got Config!")
         except json.decoder.JSONDecodeError:
             try:
                 with open(self.rawConfigFileBU) as json_file:
                     self.config = json.load(json_file)
-                    print("Got Config!")
             except FileNotFoundError:
                 self.config = None
         except FileNotFoundError:
@@ -68,7 +66,6 @@ class processThread (QThread):
 
 
     def run(self):
-        print("processThread Started")
         self.getRawJson()
         self.getDataJson()
         while not self.closeEvent.is_set():
@@ -76,7 +73,6 @@ class processThread (QThread):
                 self.getRawJson()
             if self.newRawEvent.is_set():
                 self.getRawJson()
-                print("newRaw Event!")
                 self.newRawEvent.clear()
                 for slaveKey in self.config:
                     if slaveKey not in self.entries:
