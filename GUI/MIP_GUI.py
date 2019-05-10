@@ -5,6 +5,7 @@ import os
 import threading
 import datetime
 from serialListener import *
+from dataProcess import *
 from time import sleep
 from util import *
 from math import ceil
@@ -29,11 +30,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         try:
             with open("config.cfg") as cfg:
                 self.cfgs = json.load(cfg)
-            self.saveFile = self.cfgs['SaveFile']
-            self.saveFileBackup = self.cfgs['SaveFileBU']
+            self.saveRawFile = self.cfgs['SaveRawFile']
+            self.saveRawFileBackup = self.cfgs['SaveRawFileBU']
         except FileNotFoundError:
-            self.saveFile = None
-            self.saveFileBackup = None
+            self.saveRawFile = None
+            self.saveRawFileBackup = None
 
         try:
             with open("slaveconfigs.json") as scfg:
@@ -50,8 +51,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #configure serial connection
 
         self.d_lock = threading.Lock()
-
+        self.c_lock = threading.Lock()
+        
         self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
+        self.processThread = processThread(2, "Process", self.d_lock, self.c_lock)
 
         self.serialConnectionParameters = list()
         self.serialConnectionParameters.append(serial.EIGHTBITS)
@@ -59,12 +62,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialConnectionParameters.append(serial.STOPBITS_ONE)
         self.serialConnectionParameters.append(500000)
 
-
         #Setup GraphicsLayoutWidget M10
 
         self.m10_w1 = self.ui.graphWindowM10.addPlot(row=0, col=0, title='Acel')
+        self.m10_w1.setRange(xRange=[0, 101])
         self.m10_w2 = self.ui.graphWindowM10.addPlot(row=1, col=0, title='Força')
-
+        self.m10_w2.setRange(xRange=[0, 101])
         self.m10_w1_l = LegendItem((80,30), offset=(60,30))  # args are (size, offset)
         self.m10_w1_l.setParentItem(self.m10_w1)   # Note we do NOT call plt.addItem in this case
 
@@ -74,7 +77,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #Setup GraphicsLayoutWidget M14
 
         self.m14_w1 = self.ui.graphWindowM14.addPlot(row=0, col=0, title='Pos V')
+        self.m14_w1.setRange(xRange=[0, 101])
         self.m14_w2 = self.ui.graphWindowM14.addPlot(row=1, col=0, title='Acel')
+        self.m14_w2.setRange(xRange=[0, 101])
 
         self.m14_w1_l = LegendItem((80,30), offset=(60,30))
         self.m14_w1_l.setParentItem(self.m14_w1)
@@ -85,9 +90,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #Setup GraphicsLayoutWidget G10
 
         self.g10_w1 = self.ui.graphWindowG10.addPlot(row=0, col=0, colspan=3, title='Gerador')
+        self.g10_w1.setRange(xRange=[0, 101])
         self.g10_w4 = self.ui.graphWindowG10.addPlot(row=0, col=3, colspan=1, title='Potência')
+        self.g10_w4.setRange(xRange=[0, 101])
         self.g10_w2 = self.ui.graphWindowG10.addPlot(row=1, col=0, colspan=4, title='Rotações')
+        self.g10_w2.setRange(xRange=[0, 101])
         self.g10_w3 = self.ui.graphWindowG10.addPlot(row=2, col=0, colspan=4, title='ToF')
+        self.g10_w3.setRange(xRange=[0, 101])
 
         self.g10_w1_l = LegendItem((80,30), offset=(60,30))
         self.g10_w1_l.setParentItem(self.g10_w1)
@@ -104,9 +113,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # Setup GraphicsLayoutWidget G14
 
         self.g14_w1 = self.ui.graphWindowG14.addPlot(row=0, col=0, colspan=3, title='Gerador')
+        self.g14_w1.setRange(xRange=[0, 101])
         self.g14_w4 = self.ui.graphWindowG14.addPlot(row=0, col=3, colspan=1, title='Potência')
+        self.g14_w4.setRange(xRange=[0, 101])
         self.g14_w2 = self.ui.graphWindowG14.addPlot(row=1, col=0, colspan=4, title='Rotações')
+        self.g14_w2.setRange(xRange=[0, 101])
         self.g14_w3 = self.ui.graphWindowG14.addPlot(row=2, col=0, colspan=4, title='Pos V + Pos H')
+        self.g14_w3.setRange(xRange=[0, 101])
 
         self.g14_w1_l = LegendItem((80, 30), offset=(60, 30))
         self.g14_w1_l.setParentItem(self.g14_w1)
@@ -120,7 +133,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.g14_w4_l = LegendItem((80, 30), offset=(60, 30))
         self.g14_w4_l.setParentItem(self.g14_w4)
 
-        self.addEntry()
+        self.addRawEntry()
 
         #initialize combo box
         self.getCOMList()
@@ -138,20 +151,31 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #updateCOMButton CallBack
         self.ui.updateCOMButton.clicked.connect(self.getCOMList)
 
-    def startThread(self):
-        self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
+
+    def startSerialThread(self):
+        #self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
 
         #Signal from Thread
-        self.serialListenerThread.addEntrySignal.connect(self.addEntry)
+        self.serialListenerThread.addRawEntrySignal.connect(self.addRawEntry)
 
         self.serialConnectionParameters.append(self.serialCOM)
         self.serialListenerThread.setParameteres(self.serialConnectionParameters)
-        self.serialListenerThread.saveFile = self.saveFile
-        self.serialListenerThread.saveFileBU = self.saveFileBackup
+        self.serialListenerThread.saveRawFile = self.saveRawFile
+        self.serialListenerThread.saveRawFileBU = self.saveRawFileBackup
         self.serialListenerThread.start()
 
-    #COMMUNICATION
+    def startProcessThread(self):
+        #self.processThread = processThread(2, "Process", self.d_lock, self.c_lock)
 
+        #Signal from Thread
+        self.processThread.addEntrySignal.connect(self.addEntry)
+
+        self.processThread.rawConfigFile = self.saveRawFile
+        self.processThread.rawConfigFileBU = self.saveRawFileBackup
+        self.processThread.dataFile = "C:\\Users\\deman\\PycharmProjects\\Monitoring_Interface_Pavnext\\Data\\processedTest.json"
+        self.processThread.dataFileBU = "C:\\Users\\deman\\PycharmProjects\\Monitoring_Interface_Pavnext\\Data\\processedTestBU.json"
+        self.processThread.start()
+    #COMMUNICATION
     def getCOMList(self):
         self.ui.targetComCB.clear()
         self.ui.targetComCB.addItems([comport.device for comport in serial.tools.list_ports.comports()])
@@ -159,11 +183,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
 
     def targetConnectionCB(self):
-        # if self.saveFileBackup == None or self.saveFile == None:
-        #     self.getSavefiles()
+        # if self.saveRawFileBackup == None or self.saveRawFile == None:
+        #     self.getsaveRawFiles()
         #     return
         if self.serialListenerThread.isRunning():
-            self.closeConnetion()
+            self.closeSerialConnetion()
             self.ui.targetComConnectButton.setText("Connect")
         elif(self.serialCOM != None):
             if(self.establishConnection()):
@@ -176,8 +200,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def establishConnection(self):
         try:
-            self.startThread()
+            self.startSerialThread()
             if self.serialListenerThread.isRunning():
+                self.startProcessThread()
                 self.ui.connectionStatusLabel.setText("Connection Status: Online")
                 return 1
             else:
@@ -185,22 +210,35 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         except Exception as err:
             print(str(err))
 
-    def closeConnetion(self):
+    def closeSerialConnetion(self):
         #Set event flag to close thread
         self.serialListenerThread.closeEvent.set()
+        self.processThread.closeEvent.set()
         print(self.serialListenerThread.isRunning())
         self.ui.connectionStatusLabel.setText("Connection Status: Offline")
 
     def addEntry(self):
+        print("I added processed entries")
+
+    def addRawEntry(self):
+
+        self.processThread.newRawEvent.set()
+
         #Used on trigger by thread signal
         self.d_lock.acquire()
 
         try:
-            with open(self.saveFile) as json_file:
+            with open(self.saveRawFile) as json_file:
                 self.Entries = json.load(json_file)
+        except json.decoder.JSONDecodeError:
+            try:
+                with open(self.saveRawFileBackup) as json_file:
+                    self.Entries = json.load(json_file)
+            except Exception:
+                # if no file is found no entries are added
+                None
         except FileNotFoundError:
             #if no file is found no entries are added
-            #self.d_lock.release()
             None
         self.d_lock.release()
 
@@ -943,24 +981,24 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def getOpenfiles(self):
         dlg = QtWidgets.QFileDialog()
         filenames = dlg.getOpenFileName(parent=self, caption="Open File",filter="Json files (*.json)", directory='..\\Data\\')
-        self.saveFile = filenames[0]
+        self.saveRawFile = filenames[0]
 
-        self.saveFileBackup = self.saveFile[:-5]+"_BU.json"
+        self.saveRawFileBackup = self.saveRawFile[:-5]+"_BU.json"
 
-        self.cfgs['SaveFile'] = self.saveFile
-        self.cfgs['SaveFileBU'] = self.saveFileBackup
+        self.cfgs['saveRawFile'] = self.saveRawFile
+        self.cfgs['saveRawFileBU'] = self.saveRawFileBackup
 
         with open("config.cfg", 'w') as cfg:
             json.dump(self.cfgs, cfg, indent=4)
 
-    def getSavefiles(self):
+    def getsaveRawFiles(self):
         dlg = QtWidgets.QFileDialog()
-        filenames = dlg.getSaveFileName(parent=self, caption="Save File",filter="Json files (*.json)",directory=datetime.datetime.now().strftime("..\\Data\\%Y-%m-%d_%H%M"))
-        self.saveFile = filenames[0]
-        self.saveFileBackup = self.saveFile[:-5]+"_BU.json"
+        filenames = dlg.getsaveRawFileName(parent=self, caption="Save File",filter="Json files (*.json)",directory=datetime.datetime.now().strftime("..\\Data\\%Y-%m-%d_%H%M"))
+        self.saveRawFile = filenames[0]
+        self.saveRawFileBackup = self.saveRawFile[:-5]+"_BU.json"
 
-        self.cfgs['SaveFile'] = self.saveFile
-        self.cfgs['SaveFileBU'] = self.saveFileBackup
+        self.cfgs['SaveRawFile'] = self.saveRawFile
+        self.cfgs['SaveRawFileBU'] = self.saveRawFileBackup
 
         with open("config.cfg", 'w') as cfg:
             json.dump(self.cfgs, cfg, indent=4)

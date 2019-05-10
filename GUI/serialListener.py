@@ -14,7 +14,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 class serialThread (QThread):
 
-    addEntrySignal = pyqtSignal()
+    addRawEntrySignal = pyqtSignal()
     closedSignal = pyqtSignal()
 
     def __init__(self, threadID, name, c_lock):
@@ -24,8 +24,8 @@ class serialThread (QThread):
         self.name = name
         self.serialConnection = serial.Serial()
         self.c_lock = c_lock
-        self.saveFile = None
-        self.saveFileBU = None
+        self.saveRawFile = None
+        self.saveRawFileBU = None
 
     def setParameteres(self, parameters):
         self.serialConnection.bytesize = parameters[0]
@@ -36,18 +36,25 @@ class serialThread (QThread):
     def getJson(self):
         self.c_lock.acquire()
         try:
-            ##print(self.saveFile)
-            with open(self.saveFile) as json_file:
+            with open(self.saveRawFile) as json_file:
                 self.config = json.load(json_file)
+        except json.decoder.JSONDecodeError:
+            try:
+                with open(self.saveRawFileBU) as json_file:
+                    self.config = json.load(json_file)
+            except Exception:
+                # if no file is found no entries are added
+                None
         except FileNotFoundError:
-            self.config = {}
+            #if no file is found no entries are added
+            None
         self.c_lock.release()
     def setJson(self):
         self.c_lock.acquire()
         #Data is initially written to newData to avoid loss of values if program is closed unexpectedly
-        with open(self.saveFile, 'w') as outfile:
+        with open(self.saveRawFile, 'w') as outfile:
             json.dump(self.config, outfile, indent=4)
-        with open(self.saveFileBU, 'w') as outfile:
+        with open(self.saveRawFileBU, 'w') as outfile:
             json.dump(self.config, outfile, indent=4)
         self.c_lock.release()
 
@@ -188,7 +195,7 @@ class serialThread (QThread):
 
                     self.setJson()
 
-                    self.addEntrySignal.emit()
+                    self.addRawEntrySignal.emit()
                     #print("================ENTRY ADDED================")
 
         self.serialConnection.close()
