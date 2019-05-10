@@ -68,11 +68,14 @@ class processThread (QThread):
 
 
     def run(self):
+        print("processThread Started")
         self.getRawJson()
         if(self.config != None):
+            print("Got Config!")
             self.getDataJson()
             while not self.closeEvent.is_set():
                 if self.newRawEvent.is_set():
+                    print("newRaw Event!")
                     self.newRawEvent.clear()
                     for slaveKey in self.config:
                         if slaveKey not in self.entries:
@@ -95,21 +98,22 @@ class processThread (QThread):
                                     if(dataR):
                                         if 'dataR' not in self.entries[slaveKey]['sensors'][sensorKey]:
                                             self.entries[slaveKey]['sensors'][sensorKey]['dataR'] = []
-                                        self.entries[slaveKey]['sensors'][sensorKey]['dataR'].append(dataR)
+                                        self.entries[slaveKey]['sensors'][sensorKey]['dataR'] = self.entries[slaveKey]['sensors'][sensorKey]['dataR'] + dataR
                                     if(dataNR):
                                         if 'dataNR' not in self.entries[slaveKey]['sensors'][sensorKey]:
                                             self.entries[slaveKey]['sensors'][sensorKey]['dataNR'] = []
-                                        self.entries[slaveKey]['sensors'][sensorKey]['dataNR'].append(dataNR)
+                                        self.entries[slaveKey]['sensors'][sensorKey]['dataNR'] = self.entries[slaveKey]['sensors'][sensorKey]['dataNR'] + dataNR
                                     #TODO change to definitive time
                                     if('time' not in self.entries[slaveKey]['sensors'][sensorKey]):
                                         self.entries[slaveKey]['sensors'][sensorKey]['time'] = []
                                     time = len(self.entries[slaveKey]['sensors'][sensorKey]['time'])
-                                    self.entries[slaveKey]['sensors'][sensorKey]['time'].append([i for i in range(time, time + sensorDataEntry['size'])])
+                                    self.entries[slaveKey]['sensors'][sensorKey]['time'] = self.entries[slaveKey]['sensors'][sensorKey]['time'] + [i for i in range(time, time + sensorDataEntry['size'])]
                         #TODO Check type of entry
                         #TODO Process for type of entry
                         #TODO Save processed data
+                    print(self.config)
                     print(self.entries)
                     self.setJson()
 
                     self.addEntrySignal.emit()
-
+                    self.closeEvent.set()

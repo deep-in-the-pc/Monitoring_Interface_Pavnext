@@ -43,7 +43,6 @@ class serialThread (QThread):
                 with open(self.saveRawFileBU) as json_file:
                     self.config = json.load(json_file)
             except Exception:
-                # if no file is found no entries are added
                 None
         except FileNotFoundError:
             #if no file is found no entries are added
@@ -51,7 +50,7 @@ class serialThread (QThread):
         self.c_lock.release()
     def setJson(self):
         self.c_lock.acquire()
-        #Data is initially written to newData to avoid loss of values if program is closed unexpectedly
+        #Data is written twice to avoid loss of values if program is closed unexpectedly
         with open(self.saveRawFile, 'w') as outfile:
             json.dump(self.config, outfile, indent=4)
         with open(self.saveRawFileBU, 'w') as outfile:
