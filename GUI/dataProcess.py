@@ -32,16 +32,16 @@ class processThread (QThread):
         try:
             with open(self.rawConfigFile) as json_file:
                 self.config = json.load(json_file)
+                print("Got Config!")
         except json.decoder.JSONDecodeError:
             try:
                 with open(self.rawConfigFileBU) as json_file:
                     self.config = json.load(json_file)
+                    print("Got Config!")
             except FileNotFoundError:
                 self.config = None
-                self.closeEvent.set()
         except FileNotFoundError:
             self.config = None
-            self.closeEvent.set()
 
         self.c_lock.release()
     def getDataJson(self):
@@ -70,50 +70,50 @@ class processThread (QThread):
     def run(self):
         print("processThread Started")
         self.getRawJson()
-        if(self.config != None):
-            print("Got Config!")
-            self.getDataJson()
-            while not self.closeEvent.is_set():
-                if self.newRawEvent.is_set():
-                    print("newRaw Event!")
-                    self.newRawEvent.clear()
-                    for slaveKey in self.config:
-                        if slaveKey not in self.entries:
-                            self.entries[slaveKey] = {"sensors":{}}
-                        for sensorKey in self.config[slaveKey]['sensors']:
-                            if sensorKey not in self.entries[slaveKey]['sensors']:
-                                self.entries[slaveKey]['sensors'][sensorKey] = {}
-                            if 'entries' not in self.config[slaveKey]['sensors'][sensorKey]:
-                                self.config[slaveKey]['sensors'][sensorKey]['entries'] = []
-                            for sensorDataEntry in self.config[slaveKey]['sensors'][sensorKey]['entries']:
-                                if 'dataList' not in self.entries[slaveKey]['sensors'][sensorKey]:
-                                    self.entries[slaveKey]['sensors'][sensorKey]['dataList'] = list()
-                                if sensorDataEntry['id'] in self.entries[slaveKey]['sensors'][sensorKey]['dataList']:
-                                    continue
-                                else:
-                                    print(self.config[slaveKey], sensorKey, sensorDataEntry['id'])
-                                    self.entries[slaveKey]['sensors'][sensorKey]['dataList'].append(sensorDataEntry['id'])
-                                    (dataR, dataNR) = dataConverter(self.config[slaveKey], sensorKey, sensorDataEntry['id'])
-                                    print(dataR, dataNR)
-                                    if(dataR):
-                                        if 'dataR' not in self.entries[slaveKey]['sensors'][sensorKey]:
-                                            self.entries[slaveKey]['sensors'][sensorKey]['dataR'] = []
-                                        self.entries[slaveKey]['sensors'][sensorKey]['dataR'] = self.entries[slaveKey]['sensors'][sensorKey]['dataR'] + dataR
-                                    if(dataNR):
-                                        if 'dataNR' not in self.entries[slaveKey]['sensors'][sensorKey]:
-                                            self.entries[slaveKey]['sensors'][sensorKey]['dataNR'] = []
-                                        self.entries[slaveKey]['sensors'][sensorKey]['dataNR'] = self.entries[slaveKey]['sensors'][sensorKey]['dataNR'] + dataNR
-                                    #TODO change to definitive time
-                                    if('time' not in self.entries[slaveKey]['sensors'][sensorKey]):
-                                        self.entries[slaveKey]['sensors'][sensorKey]['time'] = []
-                                    time = len(self.entries[slaveKey]['sensors'][sensorKey]['time'])
-                                    self.entries[slaveKey]['sensors'][sensorKey]['time'] = self.entries[slaveKey]['sensors'][sensorKey]['time'] + [i for i in range(time, time + sensorDataEntry['size'])]
-                        #TODO Check type of entry
-                        #TODO Process for type of entry
-                        #TODO Save processed data
-                    print(self.config)
-                    print(self.entries)
-                    self.setJson()
+        self.getDataJson()
+        while not self.closeEvent.is_set():
+            if (self.config == None):
+                self.getRawJson()
+            if self.newRawEvent.is_set():
+                self.getRawJson()
+                print("newRaw Event!")
+                self.newRawEvent.clear()
+                for slaveKey in self.config:
+                    if slaveKey not in self.entries:
+                        self.entries[slaveKey] = {"sensors":{}}
+                    for sensorKey in self.config[slaveKey]['sensors']:
+                        if sensorKey not in self.entries[slaveKey]['sensors']:
+                            self.entries[slaveKey]['sensors'][sensorKey] = {}
+                        if 'entries' not in self.config[slaveKey]['sensors'][sensorKey]:
+                            self.config[slaveKey]['sensors'][sensorKey]['entries'] = []
+                        for sensorDataEntry in self.config[slaveKey]['sensors'][sensorKey]['entries']:
+                            if 'dataList' not in self.entries[slaveKey]['sensors'][sensorKey]:
+                                self.entries[slaveKey]['sensors'][sensorKey]['dataList'] = list()
+                            if sensorDataEntry['id'] in self.entries[slaveKey]['sensors'][sensorKey]['dataList']:
+                                continue
+                            else:
+                                print(self.config[slaveKey], sensorKey, sensorDataEntry['id'])
+                                self.entries[slaveKey]['sensors'][sensorKey]['dataList'].append(sensorDataEntry['id'])
+                                (dataR, dataNR) = dataConverter(self.config[slaveKey], sensorKey, sensorDataEntry['id'])
+                                print(dataR, dataNR)
+                                if(dataR):
+                                    if 'dataR' not in self.entries[slaveKey]['sensors'][sensorKey]:
+                                        self.entries[slaveKey]['sensors'][sensorKey]['dataR'] = []
+                                    self.entries[slaveKey]['sensors'][sensorKey]['dataR'] = self.entries[slaveKey]['sensors'][sensorKey]['dataR'] + dataR
+                                if(dataNR):
+                                    if 'dataNR' not in self.entries[slaveKey]['sensors'][sensorKey]:
+                                        self.entries[slaveKey]['sensors'][sensorKey]['dataNR'] = []
+                                    self.entries[slaveKey]['sensors'][sensorKey]['dataNR'] = self.entries[slaveKey]['sensors'][sensorKey]['dataNR'] + dataNR
+                                #TODO change to definitive time
+                                if('time' not in self.entries[slaveKey]['sensors'][sensorKey]):
+                                    self.entries[slaveKey]['sensors'][sensorKey]['time'] = []
+                                time = len(self.entries[slaveKey]['sensors'][sensorKey]['time'])
+                                self.entries[slaveKey]['sensors'][sensorKey]['time'] = self.entries[slaveKey]['sensors'][sensorKey]['time'] + [i for i in range(time, time + sensorDataEntry['size'])]
+                    #TODO Check type of entry
+                    #TODO Process for type of entry
+                    #TODO Save processed data
+                print(self.config)
+                print(self.entries)
+                self.setJson()
 
-                    self.addEntrySignal.emit()
-                    self.closeEvent.set()
+                self.addEntrySignal.emit()
