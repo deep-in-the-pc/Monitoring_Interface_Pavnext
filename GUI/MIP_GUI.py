@@ -91,7 +91,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.m14_w1.setRange(xRange=[0, 101], yRange=[0, 345])
         self.m14_w1.showGrid(x=True, y=True, alpha=0.7)
         self.m14_w2 = self.ui.graphWindowM14.addPlot(row=1, col=0, title='Acel')
-        self.m14_w2.setRange(xRange=[0, 101], yRange=[0,230])
+        self.m14_w2.setRange(xRange=[0, 101], yRange=[-215,215])
         self.m14_w2.showGrid(x=True, y=True, alpha=0.7)
 
         self.m14_w1_l = LegendItem((80,30), offset=(60,30))
@@ -874,28 +874,28 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for item in self.m10_w1.listDataItems():
                 if item.name() == "Acel X":
                     self.m10_w1.removeItem(item)
-            acelx = self.m10_w1.plot(self.m10_acelx_x, self.m10_acelx_y, pen='r')
+            acelx = self.m10_w1.plot(self.m10_acelx_x, self.m10_acelx_y, pen=(128, 0, 0))
             self.m10_w1_l.removeItem('Acel X')
             self.m10_w1_l.addItem(acelx, 'Acel X')
         if (m10[1]):
             for item in self.m10_w1.listDataItems():
                 if item.name() == "Acel Y":
                     self.m10_w1.removeItem(item)
-            acely = self.m10_w1.plot(self.m10_acely_x, self.m10_acely_y, pen='g')
+            acely = self.m10_w1.plot(self.m10_acely_x, self.m10_acely_y, pen=(0, 128, 0))
             self.m10_w1_l.removeItem('Acel Y')
             self.m10_w1_l.addItem(acely, 'Acel Y')
         if (m10[2]):
             for item in self.m10_w1.listDataItems():
                 if item.name() == "Acel Z":
                     self.m10_w1.removeItem(item)
-            acelz = self.m10_w1.plot(self.m10_acelz_x, self.m10_acelz_y, pen='b')
+            acelz = self.m10_w1.plot(self.m10_acelz_x, self.m10_acelz_y, pen=(0, 0, 128))
             self.m10_w1_l.removeItem('Acel Z')
             self.m10_w1_l.addItem(acelz, 'Acel Z')
         if (m10[3]):
             for item in self.m10_w1.listDataItems():
                 if item.name() == "Força":
                     self.m10_w2.removeItem(item)
-            forca = self.m10_w2.plot(self.m10_forca_x, self.m10_forca_y, pen='r')
+            forca = self.m10_w2.plot(self.m10_forca_x, self.m10_forca_y, pen=(128, 0, 0))
             self.m10_w2_l.removeItem('Força')
             self.m10_w2_l.addItem(forca, 'Força')
 
@@ -905,42 +905,42 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for item in self.m14_w1.listDataItems():
                 if item.name() == "sl0":
                     self.m14_w1.removeItem(item)
-            sl0 = self.m14_w1.plot(self.m14_sl0_x, self.m14_sl0_y, pen='r', name="sl0")
+            sl0 = self.m14_w1.plot(self.m14_sl0_x, self.m14_sl0_y, pen=(191, 0, 0), name="sl0")
             self.m14_w1_l.removeItem('sl0')
             self.m14_w1_l.addItem(sl0, 'sl0')
         if (m14[4]):
             for item in self.m14_w1.listDataItems():
                 if item.name() == "sl1":
                     self.m14_w1.removeItem(item)
-            sl1 = self.m14_w1.plot(self.m14_sl1_x, self.m14_sl1_y, pen='g', name="sl1")
+            sl1 = self.m14_w1.plot(self.m14_sl1_x, self.m14_sl1_y, pen=(0, 191, 0), name="sl1")
             self.m14_w1_l.removeItem('sl1')
             self.m14_w1_l.addItem(sl1, 'sl1')
         if (m14[5]):
             for item in self.m14_w1.listDataItems():
                 if item.name() == "sl2":
                     self.m14_w1.removeItem(item)
-            sl2 = self.m14_w1.plot(self.m14_sl2_x, self.m14_sl2_y, pen='b', name="sl2")
+            sl2 = self.m14_w1.plot(self.m14_sl2_x, self.m14_sl2_y, pen=(0, 0, 191), name="sl2")
             self.m14_w1_l.removeItem('sl2')
             self.m14_w1_l.addItem(sl2, 'sl2')
         if (m14[6]):
             for item in self.m14_w1.listDataItems():
                 if item.name() == "sl3":
                     self.m14_w1.removeItem(item)
-            sl3 = self.m14_w1.plot(self.m14_sl3_x, self.m14_sl3_y, pen=(255, 255, 0), name="sl3")
+            sl3 = self.m14_w1.plot(self.m14_sl3_x, self.m14_sl3_y, pen=(128, 128, 0), name="sl3")
             self.m14_w1_l.removeItem('sl3')
             self.m14_w1_l.addItem(sl3, 'sl3')
         if (m14[7]):
             for item in self.m14_w1.listDataItems():
                 if item.name() == "sl4":
                     self.m14_w1.removeItem(item)
-            sl4 = self.m14_w1.plot(self.m14_sl4_x, self.m14_sl4_y, pen=(0, 255, 255), name="sl4")
+            sl4 = self.m14_w1.plot(self.m14_sl4_x, self.m14_sl4_y, pen=(0, 128, 128), name="sl4")
             self.m14_w1_l.removeItem('sl4')
             self.m14_w1_l.addItem(sl4, 'sl4')
         if (m14[8]):
             for item in self.m14_w1.listDataItems():
                 if item.name() == "sl5":
                     self.m14_w1.removeItem(item)
-            sl5 = self.m14_w1.plot(self.m14_sl5_x, self.m14_sl5_y, pen=(255, 0, 255), name="sl5")
+            sl5 = self.m14_w1.plot(self.m14_sl5_x, self.m14_sl5_y, pen=(128, 0, 128), name="sl5")
             self.m14_w1_l.removeItem('sl5')
             self.m14_w1_l.addItem(sl5, 'sl5')
 
@@ -949,7 +949,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for item in self.m14_w2.listDataItems():
                 if item.name() == "acelx":
                     self.m14_w2.removeItem(item)
-            acelx = self.m14_w2.plot(self.m14_acelx_x, self.m14_acelx_y, pen='r', name="acelx")
+            acelx = self.m14_w2.plot(self.m14_acelx_x, self.m14_acelx_y, pen=(191, 0, 0), name="acelx")
             self.m14_w2_l.removeItem('Acel X')
             self.m14_w2_l.addItem(acelx, 'Acel X')
         if (m14[1]):
@@ -957,7 +957,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if item.name() == "acely":
                     self.m14_w2.removeItem(item)
             self.m14_w2.removeItem("acely")
-            acely = self.m14_w2.plot(self.m14_acely_x, self.m14_acely_y, pen='g', name="acely")
+            acely = self.m14_w2.plot(self.m14_acely_x, self.m14_acely_y, pen=(0, 191, 0), name="acely")
             self.m14_w2_l.removeItem('Acel Y')
             self.m14_w2_l.addItem(acely, 'Acel Y')
         if (m14[2]):
@@ -965,7 +965,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if item.name() == "acelz":
                     self.m14_w2.removeItem(item)
             self.m14_w2.removeItem("acelz")
-            acelz = self.m14_w2.plot(self.m14_acelz_x, self.m14_acelz_y, pen='b', name="acelz")
+            acelz = self.m14_w2.plot(self.m14_acelz_x, self.m14_acelz_y, pen=(0, 0, 191), name="acelz")
             self.m14_w2_l.removeItem('Acel Z')
             self.m14_w2_l.addItem(acelz, 'Acel Z')
 
@@ -978,28 +978,28 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for item in self.g10_w1.listDataItems():
                 if item.name() == "g10_volt1":
                     self.g10_w1.removeItem(item)
-            g10_volt1 = self.g10_w1.plot(self.g10_volt1_x, self.g10_volt1_y, pen='r', name="Volt 1")
+            g10_volt1 = self.g10_w1.plot(self.g10_volt1_x, self.g10_volt1_y, pen=(191, 0, 0), name="Volt 1")
             self.g10_w1_l.removeItem('g10_volt1')
             self.g10_w1_l.addItem(g10_volt1, 'g10_volt1')
         if (g10[1]):
             for item in self.g10_w1.listDataItems():
                 if item.name() == "g10_volt2":
                     self.g10_w1.removeItem(item)
-            g10_volt2 = self.g10_w1.plot(self.g10_volt2_x, self.g10_volt2_y, pen='g', name="Volt 2")
+            g10_volt2 = self.g10_w1.plot(self.g10_volt2_x, self.g10_volt2_y, pen=(0, 191, 0), name="Volt 2")
             self.g10_w1_l.removeItem('g10_volt2')
             self.g10_w1_l.addItem(g10_volt2, 'g10_volt2')
         if (g10[2]):
             for item in self.g10_w1.listDataItems():
                 if item.name() == "g10_curr1":
                     self.g10_w1.removeItem(item)
-            g10_curr1 = self.g10_w1.plot(self.g10_curr1_x, self.g10_curr1_y, pen='b', name="Curr 1")
+            g10_curr1 = self.g10_w1.plot(self.g10_curr1_x, self.g10_curr1_y, pen=(0, 0, 191), name="Curr 1")
             self.g10_w1_l.removeItem('g10_curr1')
             self.g10_w1_l.addItem(g10_curr1, 'g10_curr1')
         if (g10[3]):
             for item in self.g10_w1.listDataItems():
                 if item.name() == "g10_curr2":
                     self.g10_w1.removeItem(item)
-            g10_curr2 = self.g10_w1.plot(self.g10_curr2_x, self.g10_curr2_y, pen=(255, 255, 0), name="Curr 2")
+            g10_curr2 = self.g10_w1.plot(self.g10_curr2_x, self.g10_curr2_y, pen=(128, 128, 0), name="Curr 2")
             self.g10_w1_l.removeItem('g10_curr2')
             self.g10_w1_l.addItem(g10_curr2, 'g10_curr2')
             
@@ -1008,21 +1008,21 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for item in self.g10_w2.listDataItems():
                 if item.name() == "g10_hall1":
                     self.g10_w2.removeItem(item)
-            g10_hall1 = self.g10_w2.plot(self.g10_hall1_x, self.g10_hall1_y, pen='r', name="Hall 1")
+            g10_hall1 = self.g10_w2.plot(self.g10_hall1_x, self.g10_hall1_y, pen=(191, 0, 0), name="Hall 1")
             self.g10_w2_l.removeItem('g10_hall1')
             self.g10_w2_l.addItem(g10_hall1, 'g10_hall1')
         if (g10[5]):
             for item in self.g10_w2.listDataItems():
                 if item.name() == "g10_hall2":
                     self.g10_w2.removeItem(item)
-            g10_hall2 = self.g10_w2.plot(self.g10_hall2_x, self.g10_hall2_y, pen='g', name="Hall 2")
+            g10_hall2 = self.g10_w2.plot(self.g10_hall2_x, self.g10_hall2_y, pen=(0, 191, 0), name="Hall 2")
             self.g10_w2_l.removeItem('g10_hall2')
             self.g10_w2_l.addItem(g10_hall2, 'g10_hall2')
         if(g10[6]):
             for item in self.g10_w2.listDataItems():
                 if item.name() == "g10_pulse1":
                     self.g10_w2.removeItem(item)
-            g10_pulse1 = self.g10_w2.plot(self.g10_pulse1_x, self.g10_pulse1_y, pen='b', name="Pulse 1")
+            g10_pulse1 = self.g10_w2.plot(self.g10_pulse1_x, self.g10_pulse1_y, pen=(0, 0, 191), name="Pulse 1")
             self.g10_w2_l.removeItem('g10_pulse1')
             self.g10_w2_l.addItem(g10_pulse1, 'g10_pulse1')
         if (g10[7]):
@@ -1030,7 +1030,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if item.name() == "g10_pulse2":
                     self.g10_w2.removeItem(item)
             self.g10_w2.removeItem("g10_pulse2")
-            g10_pulse2 = self.g10_w2.plot(self.g10_pulse2_x, self.g10_pulse2_y, pen=(255, 255, 0), name="Pulse 2")
+            g10_pulse2 = self.g10_w2.plot(self.g10_pulse2_x, self.g10_pulse2_y, pen=(128, 128, 0), name="Pulse 2")
             self.g10_w2_l.removeItem('g10_pulse2')
             self.g10_w2_l.addItem(g10_pulse2, 'g10_pulse2')
 
@@ -1039,7 +1039,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if item.name() == "g10_tof":
                     self.g10_w3.removeItem(item)
             self.g10_w3.removeItem("g10_tof")
-            g10_tof = self.g10_w3.plot(self.g10_tof_x, self.g10_tof_y, pen='r', name="ToF")
+            g10_tof = self.g10_w3.plot(self.g10_tof_x, self.g10_tof_y, pen=(191, 0, 0), name="ToF")
             self.g10_w3_l.removeItem('g10_tof')
             self.g10_w3_l.addItem(g10_tof, 'g10_tof')
         if (g10[9]):
@@ -1047,7 +1047,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if item.name() == "g10_EL1":
                     self.g10_w3.removeItem(item)
             self.g10_w3.removeItem("g10_EL1")
-            g10_EL1 = self.g10_w3.plot(self.g10_EL1_x, self.g10_EL1_y, pen='g', name="EL 1")
+            g10_EL1 = self.g10_w3.plot(self.g10_EL1_x, self.g10_EL1_y, pen=(0, 191, 0), name="EL 1")
             self.g10_w3_l.removeItem('g10_EL1')
             self.g10_w3_l.addItem(g10_EL1, 'g10_EL1')
         if (g10[10]):
@@ -1055,7 +1055,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if item.name() == "g10_EL2":
                     self.g10_w3.removeItem(item)
             self.g10_w3.removeItem("g10_EL2")
-            g10_EL2 = self.g10_w3.plot(self.g10_EL2_x, self.g10_EL2_y, pen='b', name="EL 2")
+            g10_EL2 = self.g10_w3.plot(self.g10_EL2_x, self.g10_EL2_y, pen=(0, 0, 191), name="EL 2")
             self.g10_w3_l.removeItem('g10_EL2')
             self.g10_w3_l.addItem(g10_EL2, 'g10_EL2')
 
@@ -1069,28 +1069,28 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for item in self.g14_w1.listDataItems():
                 if item.name() == "g14_volt1":
                     self.g14_w1.removeItem(item)
-            g14_volt1 = self.g14_w1.plot(self.g14_volt1_x, self.g14_volt1_y, pen='r', name="Volt 1")
+            g14_volt1 = self.g14_w1.plot(self.g14_volt1_x, self.g14_volt1_y, pen=(191, 0, 0), name="Volt 1")
             self.g14_w1_l.removeItem('g14_volt1')
             self.g14_w1_l.addItem(g14_volt1, 'g14_volt1')
         if (g14[1]):
             for item in self.g14_w1.listDataItems():
                 if item.name() == "g14_volt2":
                     self.g14_w1.removeItem(item)
-            g14_volt2 = self.g14_w1.plot(self.g14_volt2_x, self.g14_volt2_y, pen='g', name="Volt 2")
+            g14_volt2 = self.g14_w1.plot(self.g14_volt2_x, self.g14_volt2_y, pen=(0, 191, 0), name="Volt 2")
             self.g14_w1_l.removeItem('g14_volt2')
             self.g14_w1_l.addItem(g14_volt2, 'g14_volt2')
         if (g14[2]):
             for item in self.g14_w1.listDataItems():
                 if item.name() == "g14_curr1":
                     self.g14_w1.removeItem(item)
-            g14_curr1 = self.g14_w1.plot(self.g14_curr1_x, self.g14_curr1_y, pen='b', name="Curr 1")
+            g14_curr1 = self.g14_w1.plot(self.g14_curr1_x, self.g14_curr1_y, pen=(0, 0, 191), name="Curr 1")
             self.g14_w1_l.removeItem('g14_curr1')
             self.g14_w1_l.addItem(g14_curr1, 'g14_curr1')
         if (g14[3]):
             for item in self.g14_w1.listDataItems():
                 if item.name() == "g14_curr2":
                     self.g14_w1.removeItem(item)
-            g14_curr2 = self.g14_w1.plot(self.g14_curr2_x, self.g14_curr2_y, pen=(255, 255, 0), name="Curr 2")
+            g14_curr2 = self.g14_w1.plot(self.g14_curr2_x, self.g14_curr2_y, pen=(128, 128, 0), name="Curr 2")
             self.g14_w1_l.removeItem('g14_curr2')
             self.g14_w1_l.addItem(g14_curr2, 'g14_curr2')
 
@@ -1098,21 +1098,21 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for item in self.g14_w2.listDataItems():
                 if item.name() == "g14_hall1":
                     self.g14_w2.removeItem(item)
-            g14_hall1 = self.g14_w2.plot(self.g14_hall1_x, self.g14_hall1_y, pen='r', name="Hall 1")
+            g14_hall1 = self.g14_w2.plot(self.g14_hall1_x, self.g14_hall1_y, pen=(191, 0, 0), name="Hall 1")
             self.g14_w2_l.removeItem('g14_hall1')
             self.g14_w2_l.addItem(g14_hall1, 'g14_hall1')
         if (g14[5]):
             for item in self.g14_w2.listDataItems():
                 if item.name() == "g14_hall2":
                     self.g14_w2.removeItem(item)
-            g14_hall2 = self.g14_w2.plot(self.g14_hall2_x, self.g14_hall2_y, pen='g', name="Hall 2")
+            g14_hall2 = self.g14_w2.plot(self.g14_hall2_x, self.g14_hall2_y, pen=(0, 191, 0), name="Hall 2")
             self.g14_w2_l.removeItem('g14_hall2')
             self.g14_w2_l.addItem(g14_hall2, 'g14_hall2')
         if (g14[6]):
             for item in self.g14_w2.listDataItems():
                 if item.name() == "g14_pulse1":
                     self.g14_w2.removeItem(item)
-            g14_pulse1 = self.g14_w2.plot(self.g14_pulse1_x, self.g14_pulse1_y, pen='b', name="Pulse 1")
+            g14_pulse1 = self.g14_w2.plot(self.g14_pulse1_x, self.g14_pulse1_y, pen=(0, 0, 191), name="Pulse 1")
             self.g14_w2_l.removeItem('g14_pulse1')
             self.g14_w2_l.addItem(g14_pulse1, 'g14_pulse1')
         if (g14[7]):
@@ -1120,7 +1120,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if item.name() == "g14_pulse2":
                     self.g14_w2.removeItem(item)
             self.g14_w2.removeItem("g14_pulse2")
-            g14_pulse2 = self.g14_w2.plot(self.g14_pulse2_x, self.g14_pulse2_y, pen=(255, 255, 0), name="Pulse 2")
+            g14_pulse2 = self.g14_w2.plot(self.g14_pulse2_x, self.g14_pulse2_y, pen=(128, 128, 0), name="Pulse 2")
             self.g14_w2_l.removeItem('g14_pulse2')
             self.g14_w2_l.addItem(g14_pulse2, 'g14_pulse2')
 
@@ -1129,7 +1129,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if item.name() == "g14_slhe":
                     self.g14_w3.removeItem(item)
             self.g14_w3.removeItem("g14_slhe")
-            g14_slhe = self.g14_w3.plot(self.g14_slhe_x, self.g14_slhe_y, pen='r', name="SLH E")
+            g14_slhe = self.g14_w3.plot(self.g14_slhe_x, self.g14_slhe_y, pen=(191, 0, 0), name="SLH E")
             self.g14_w3_l.removeItem('g14_slhe')
             self.g14_w3_l.addItem(g14_slhe, 'g14_slhe')
         if (g14[9]):
@@ -1137,7 +1137,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if item.name() == "g14_slhd":
                     self.g14_w3.removeItem(item)
             self.g14_w3.removeItem("g14_slhd")
-            g14_slhd = self.g14_w3.plot(self.g14_slhd_x, self.g14_slhd_y, pen='g', name="SLH D")
+            g14_slhd = self.g14_w3.plot(self.g14_slhd_x, self.g14_slhd_y, pen=(0, 191, 0), name="SLH D")
             self.g14_w3_l.removeItem('g14_slhd')
             self.g14_w3_l.addItem(g14_slhd, 'g14_slhd')
         if (g14[10]):
@@ -1145,7 +1145,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if item.name() == "g14_slve":
                     self.g14_w3.removeItem(item)
             self.g14_w3.removeItem("g14_slve")
-            g14_slve = self.g14_w3.plot(self.g14_slve_x, self.g14_slve_y, pen='b', name="SLV E")
+            g14_slve = self.g14_w3.plot(self.g14_slve_x, self.g14_slve_y, pen=(0, 0, 191), name="SLV E")
             self.g14_w3_l.removeItem('g14_slve')
             self.g14_w3_l.addItem(g14_slve, 'g14_slve')
         if (g14[11]):
@@ -1153,7 +1153,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if item.name() == "g14_slvd":
                     self.g14_w3.removeItem(item)
             self.g14_w3.removeItem("g14_slvd")
-            g14_slvd = self.g14_w3.plot(self.g14_slvd_x, self.g14_slvd_y, pen='b', name="SLV D")
+            g14_slvd = self.g14_w3.plot(self.g14_slvd_x, self.g14_slvd_y, pen=(0, 0, 191), name="SLV D")
             self.g14_w3_l.removeItem('g14_slvd')
             self.g14_w3_l.addItem(g14_slvd, 'g14_slvd')
 
