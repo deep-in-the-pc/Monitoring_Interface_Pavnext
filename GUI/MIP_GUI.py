@@ -23,17 +23,22 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(ApplicationWindow, self).__init__()
 
+        #PyQtGraph config
+        setConfigOption('background', 'w')
+        setConfigOption('foreground', 'k')
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
         #Configs
+        self.DataFolderPath = "C:/Users/deman/PycharmProjects/Monitoring_Interface_Pavnext/Data"
         try:
             with open("config.cfg") as cfg:
                 self.cfgs = json.load(cfg)
-            self.saveRawFile = self.cfgs['SaveRawFile']
-            self.saveRawFileBackup = self.cfgs['SaveRawFileBU']
-            self.saveDataFile = self.cfgs['SaveFile']
-            self.saveDataFileBU = self.cfgs['SaveFileBU']
+            self.saveRawFile = self.cfgs['tempRawFile']
+            self.saveRawFileBackup = self.cfgs['tempRawFileBU']
+            self.saveDataFile = self.cfgs['tempFile']
+            self.saveDataFileBU = self.cfgs['tempFileBU']
         except FileNotFoundError:
             self.saveRawFile = None
             self.saveRawFileBackup = None
@@ -49,7 +54,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.ignoreSConfigs = True
         #self.ignoreSConfigs = True
 
-        #TODO Add Save and Open to config file
 
         #configure serial connection
 
@@ -65,12 +69,16 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialConnectionParameters.append(serial.STOPBITS_ONE)
         self.serialConnectionParameters.append(500000)
 
+
+
         #Setup GraphicsLayoutWidget M10
 
         self.m10_w1 = self.ui.graphWindowM10.addPlot(row=0, col=0, title='Acel')
         self.m10_w1.setRange(xRange=[0, 101])
+        self.m10_w1.showGrid(x=True, y=True, alpha=0.7)
         self.m10_w2 = self.ui.graphWindowM10.addPlot(row=1, col=0, title='Força')
         self.m10_w2.setRange(xRange=[0, 101])
+        self.m10_w2.showGrid(x=True, y=True, alpha=0.7)
         self.m10_w1_l = LegendItem((80,30), offset=(60,30))  # args are (size, offset)
         self.m10_w1_l.setParentItem(self.m10_w1)   # Note we do NOT call plt.addItem in this case
 
@@ -81,8 +89,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self.m14_w1 = self.ui.graphWindowM14.addPlot(row=0, col=0, title='Pos V')
         self.m14_w1.setRange(xRange=[0, 101], yRange=[0, 345])
+        self.m14_w1.showGrid(x=True, y=True, alpha=0.7)
         self.m14_w2 = self.ui.graphWindowM14.addPlot(row=1, col=0, title='Acel')
         self.m14_w2.setRange(xRange=[0, 101], yRange=[0,230])
+        self.m14_w2.showGrid(x=True, y=True, alpha=0.7)
 
         self.m14_w1_l = LegendItem((80,30), offset=(60,30))
         self.m14_w1_l.setParentItem(self.m14_w1)
@@ -94,12 +104,16 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self.g10_w1 = self.ui.graphWindowG10.addPlot(row=0, col=0, colspan=3, title='Gerador')
         self.g10_w1.setRange(xRange=[0, 101])
+        self.g10_w1.showGrid(x=True, y=True, alpha=0.7)
         self.g10_w4 = self.ui.graphWindowG10.addPlot(row=0, col=3, colspan=1, title='Potência')
         self.g10_w4.setRange(xRange=[0, 101])
+        self.g10_w4.showGrid(x=True, y=True, alpha=0.7)
         self.g10_w2 = self.ui.graphWindowG10.addPlot(row=1, col=0, colspan=4, title='Rotações')
         self.g10_w2.setRange(xRange=[0, 101])
+        self.g10_w2.showGrid(x=True, y=True, alpha=0.7)
         self.g10_w3 = self.ui.graphWindowG10.addPlot(row=2, col=0, colspan=4, title='ToF')
         self.g10_w3.setRange(xRange=[0, 101])
+        self.g10_w3.showGrid(x=True, y=True, alpha=0.7)
 
         self.g10_w1_l = LegendItem((80,30), offset=(60,30))
         self.g10_w1_l.setParentItem(self.g10_w1)
@@ -117,12 +131,16 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self.g14_w1 = self.ui.graphWindowG14.addPlot(row=0, col=0, colspan=3, title='Gerador')
         self.g14_w1.setRange(xRange=[0, 101])
+        self.g14_w1.showGrid(x=True, y=True, alpha=0.7)
         self.g14_w4 = self.ui.graphWindowG14.addPlot(row=0, col=3, colspan=1, title='Potência')
         self.g14_w4.setRange(xRange=[0, 101])
+        self.g14_w4.showGrid(x=True, y=True, alpha=0.7)
         self.g14_w2 = self.ui.graphWindowG14.addPlot(row=1, col=0, colspan=4, title='Rotações')
         self.g14_w2.setRange(xRange=[0, 101])
+        self.g14_w2.showGrid(x=True, y=True, alpha=0.7)
         self.g14_w3 = self.ui.graphWindowG14.addPlot(row=2, col=0, colspan=4, title='Pos V + Pos H')
         self.g14_w3.setRange(xRange=[0, 101])
+        self.g14_w3.showGrid(x=True, y=True, alpha=0.7)
 
         self.g14_w1_l = LegendItem((80, 30), offset=(60, 30))
         self.g14_w1_l.setParentItem(self.g14_w1)
@@ -153,8 +171,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.targetComConnectButton.clicked.connect(self.targetConnectionCB)
         #updateCOMButton CallBack
         self.ui.updateCOMButton.clicked.connect(self.getCOMList)
-
-
+        #saveDataButton Callback
+        self.ui.saveDataButton.clicked.connect(self.getSaveFiles)
+        #openDataButton Callback
+        self.ui.openDataButton.clicked.connect(self.getOpenfiles)
     def startSerialThread(self):
         #self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
 
@@ -325,7 +345,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             None
         self.d_lock.release()
 
-        print("toBeUpdates", toBeUpdated)
+        #print("toBeUpdates", toBeUpdated)
         if not updateAll:
             for slaveKey in toBeUpdated:
                 for sensorKey in toBeUpdated[slaveKey]:
@@ -828,10 +848,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.updatePlots(m10=m10, m14=m14, g10=g10, g14=g14)
 
     def updatePlots(self, m10=None, m14=None, g10=None, g14=None):
-        print("M10", m10)
-        print("M14", m14)
-        print("G10", g10)
-        print("G14", g14)
+        #print("M10", m10)
+        #print("M14", m14)
+        #print("G10", g10)
+        #print("G14", g14)
 
         if (m10):
             self.addPlotM10(m10)
@@ -1136,29 +1156,165 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.g14_w3_l.addItem(g14_slvd, 'g14_slvd')
 
     def getOpenfiles(self):
-        dlg = QtWidgets.QFileDialog()
-        filenames = dlg.getOpenFileName(parent=self, caption="Open File",filter="Json files (*.json)", directory='..\\Data\\')
-        self.saveRawFile = filenames[0]
 
-        self.saveRawFileBackup = self.saveRawFile[:-5]+"_BU.json"
+        items = os.listdir(self.DataFolderPath)
+        items.remove('temp')
 
-        self.cfgs['saveRawFile'] = self.saveRawFile
-        self.cfgs['saveRawFileBU'] = self.saveRawFileBackup
+        folder, ok = QtWidgets.QInputDialog.getItem(self, 'Open Folder Name Dialog',
+                                        "Open Data Folder:", items, 0, False)
 
-        with open("config.cfg", 'w') as cfg:
-            json.dump(self.cfgs, cfg, indent=4)
+        if ok and folder:
 
-    def getsaveRawFiles(self):
-        dlg = QtWidgets.QFileDialog()
-        filenames = dlg.getsaveRawFileName(parent=self, caption="Save File",filter="Json files (*.json)",directory=datetime.datetime.now().strftime("..\\Data\\%Y-%m-%d_%H%M"))
-        self.saveRawFile = filenames[0]
-        self.saveRawFileBackup = self.saveRawFile[:-5]+"_BU.json"
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setText("Unsaved Data will be lost!")
+            msg.setInformativeText("Are you sure you want to open?")
+            msg.setWindowTitle("Conflict warning!")
+            msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            retval = msg.exec_()
+            if retval == 0x4000:
+                self.openFiles(folder)
 
-        self.cfgs['SaveRawFile'] = self.saveRawFile
-        self.cfgs['SaveRawFileBU'] = self.saveRawFileBackup
 
-        with open("config.cfg", 'w') as cfg:
-            json.dump(self.cfgs, cfg, indent=4)
+    def getSaveFiles(self):
+        text, ok = QtWidgets.QInputDialog.getText(self, 'Save Folder Name Dialog', 'Save Data Folder to:', text=datetime.datetime.now().strftime("Data %Y-%m-%d_%H%M"))
+        folder = str(text)
+        if ok:
+            if folder in os.listdir(self.DataFolderPath):
+                msg = QtWidgets.QMessageBox()
+                msg.setIcon(QtWidgets.QMessageBox.Warning)
+                msg.setText("Data Folder already exists with the same name!")
+                msg.setInformativeText("Are you sure you want to overwrite it?")
+                msg.setWindowTitle("Conflict warning!")
+                msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+                retval = msg.exec_()
+                if retval == 0x4000:
+                    self.saveFiles(folder)
+                    return
+                elif retval == 0x10000:
+                    self.getSaveFiles()
+            else:
+                os.mkdir(self.DataFolderPath + "/" + folder)
+                self.saveFiles(folder)
+
+
+    def saveFiles(self, folder):
+        self.c_lock.acquire()
+        self.d_lock.acquire()
+
+        try:
+            with open(self.saveDataFile) as json_file:
+                processedData = json.load(json_file)
+        except json.decoder.JSONDecodeError:
+            try:
+                with open(self.saveDataFileBU) as json_file:
+                    processedData = json.load(json_file)
+            except Exception:
+
+                # if no file is found no entries are added
+                processedData = {}
+        except FileNotFoundError:
+
+            # if no file is found no entries are added
+            processedData = {}
+
+        try:
+            with open(self.saveRawFile) as json_file:
+                rawData = json.load(json_file)
+        except json.decoder.JSONDecodeError:
+            try:
+                with open(self.saveRawFileBackup) as json_file:
+                    rawData = json.load(json_file)
+            except FileNotFoundError:
+                rawData = {}
+        except FileNotFoundError:
+            rawData = {}
+
+        self.c_lock.release()
+        self.d_lock.release()
+        datapath = self.DataFolderPath + "/" + folder + "/processedData.json"
+        datapathBU = self.DataFolderPath + "/" + folder + "/processedDataBU.json"
+        datarawpath = self.DataFolderPath + "/" + folder + "/rawData.json"
+        datarawpathBU = self.DataFolderPath + "/" + folder + "/rawDataBU.json"
+
+        with open(datapath, 'w') as outfile:
+            json.dump(processedData, outfile, indent=4)
+        with open(datapathBU, 'w') as outfile:
+            json.dump(processedData, outfile, indent=4)
+        with open(datarawpath, 'w') as outfile:
+            json.dump(rawData, outfile, indent=4)
+        with open(datarawpathBU, 'w') as outfile:
+            json.dump(rawData, outfile, indent=4)
+
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setText("File save successfully!")
+        msg.setWindowTitle("File Saved")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        msg.exec_()
+
+    def openFiles(self, folder):
+
+        datapath = self.DataFolderPath + "/" + folder + "/processedData.json"
+        datapathBU = self.DataFolderPath + "/" + folder + "/processedDataBU.json"
+        datarawpath = self.DataFolderPath + "/" + folder + "/rawData.json"
+        datarawpathBU = self.DataFolderPath + "/" + folder + "/rawDataBU.json"
+
+        try:
+            with open(datapath) as json_file:
+                processedData = json.load(json_file)
+        except Exception:
+            try:
+                with open(datapathBU) as json_file:
+                    processedData = json.load(json_file)
+            except Exception:
+                msg = QtWidgets.QMessageBox()
+                msg.setIcon(QtWidgets.QMessageBox.Information)
+                msg.setText("Failed to Opened successfully!")
+                msg.setWindowTitle("File not opened")
+                msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                msg.exec_()
+                return
+
+        try:
+            with open(datarawpath) as json_file:
+                rawData = json.load(json_file)
+        except Exception:
+            try:
+                with open(datarawpathBU) as json_file:
+                    rawData = json.load(json_file)
+            except Exception:
+                msg = QtWidgets.QMessageBox()
+                msg.setIcon(QtWidgets.QMessageBox.Information)
+                msg.setText("Failed to Opened successfully!")
+                msg.setWindowTitle("File not opened")
+                msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                msg.exec_()
+                return
+
+        self.c_lock.acquire()
+        self.d_lock.acquire()
+
+        with open(self.saveDataFile, 'w') as outfile:
+            json.dump(processedData, outfile, indent=4)
+        with open(self.saveDataFileBU, 'w') as outfile:
+            json.dump(processedData, outfile, indent=4)
+        with open(self.saveRawFile, 'w') as outfile:
+            json.dump(rawData, outfile, indent=4)
+        with open(self.saveRawFileBackup, 'w') as outfile:
+            json.dump(rawData, outfile, indent=4)
+
+        self.c_lock.release()
+        self.d_lock.release()
+
+        self.addEntry("All")
+
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setText("File Opened successfully!")
+        msg.setWindowTitle("File Opened")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        msg.exec_()
 
 def main():
     app = QtWidgets.QApplication(sys.argv)

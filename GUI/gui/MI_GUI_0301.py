@@ -38,6 +38,14 @@ class Ui_MainWindow(object):
         self.targetComLabel = QtWidgets.QLabel(self.connectionFrame)
         self.targetComLabel.setObjectName("targetComLabel")
         self.formLayout_2.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.targetComLabel)
+        self.openDataButton = QtWidgets.QPushButton(self.connectionFrame)
+        self.openDataButton.setObjectName("openDataButton")
+        self.formLayout_2.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.openDataButton)
+        self.saveDataButton = QtWidgets.QPushButton(self.connectionFrame)
+        self.saveDataButton.setObjectName("saveDataButton")
+        self.formLayout_2.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.saveDataButton)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.formLayout_2.setItem(5, QtWidgets.QFormLayout.LabelRole, spacerItem)
         self.tabWidgetGraphs = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidgetGraphs.setGeometry(QtCore.QRect(220, 20, 1047, 675))
         self.tabWidgetGraphs.setTabPosition(QtWidgets.QTabWidget.North)
@@ -166,7 +174,7 @@ class Ui_MainWindow(object):
         MainWindow.setMenuBar(self.menubar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidgetGraphs.setCurrentIndex(0)
+        self.tabWidgetGraphs.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -176,6 +184,8 @@ class Ui_MainWindow(object):
         self.targetComConnectButton.setText(_translate("MainWindow", "Connect"))
         self.updateCOMButton.setText(_translate("MainWindow", "Update COM List"))
         self.targetComLabel.setText(_translate("MainWindow", "Target COM:"))
+        self.openDataButton.setText(_translate("MainWindow", "Open"))
+        self.saveDataButton.setText(_translate("MainWindow", "Save"))
         self.labelMinLineAM10.setText(_translate("MainWindow", "Min:"))
         self.labelMaxLineAM10.setText(_translate("MainWindow", "Max:"))
         self.labelMinLineBM10.setText(_translate("MainWindow", "Min:"))

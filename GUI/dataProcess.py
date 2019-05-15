@@ -109,9 +109,6 @@ class processThread (QThread):
                                     self.entries[slaveKey]['sensors'][sensorKey]['time'] = []
                                 time = len(self.entries[slaveKey]['sensors'][sensorKey]['time'])
                                 self.entries[slaveKey]['sensors'][sensorKey]['time'] = self.entries[slaveKey]['sensors'][sensorKey]['time'] + [i for i in range(time, time + sensorDataEntry['size'])]
-                    #TODO Check type of entry
-                    #TODO Process for type of entry
-                    #TODO Save processed data
                 self.setJson()
 
                 self.addEntrySignal.emit(toBeUpdated)
