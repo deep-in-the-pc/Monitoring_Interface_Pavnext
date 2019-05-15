@@ -16,11 +16,11 @@ def dataConverter(slave, sensorid, dataid):
         processedR = list(map(lambda x: ((x-rstval)/(2**adcBit) * 300), data))
         processedNR = list(map(lambda x: ((x)/(2**adcBit) * 300), data))
     elif (sensorName == "acx"):
-        processedNR  =list(map(lambda x: (((x*volt)/(2**adcBit)-1.5)/0.0065), data))
+        processedNR  =list(map(lambda x: (((x*3.3)/(2**adcBit)-1.5)/0.0065), data))
     elif (sensorName == "acy"):
-        processedNR  =list(map(lambda x: (((x*volt)/(2**adcBit)-1.5)/0.0065), data))
+        processedNR  =list(map(lambda x: (((x*3.3)/(2**adcBit)-1.5)/0.0065), data))
     elif (sensorName == "acz"):
-        processedNR  =list(map(lambda x: (((x*volt)/(2**adcBit)-1.5)/0.0065), data))
+        processedNR  =list(map(lambda x: (((x*3.3)/(2**adcBit)-1.5)/0.0065), data))
     elif (sensorName == "bie"):
         None
     elif (sensorName == "enl"):
