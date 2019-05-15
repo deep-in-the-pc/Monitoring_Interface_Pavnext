@@ -175,6 +175,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.saveDataButton.clicked.connect(self.getSaveFiles)
         #openDataButton Callback
         self.ui.openDataButton.clicked.connect(self.getOpenfiles)
+        #clearGraphButton Callback
+        self.ui.clearGraphButton.clicked.connect(self.clearGraph)
     def startSerialThread(self):
         #self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
 
@@ -1155,6 +1157,32 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.g14_w3_l.removeItem('g14_slvd')
             self.g14_w3_l.addItem(g14_slvd, 'g14_slvd')
 
+    def clearGraph(self):
+
+        processedData = {}
+        rawData = {}
+        self.c_lock.acquire()
+        self.d_lock.acquire()
+
+        with open(self.saveDataFile, 'w') as outfile:
+            json.dump(processedData, outfile, indent=4)
+        with open(self.saveDataFileBU, 'w') as outfile:
+            json.dump(processedData, outfile, indent=4)
+        with open(self.saveRawFile, 'w') as outfile:
+            json.dump(rawData, outfile, indent=4)
+        with open(self.saveRawFileBackup, 'w') as outfile:
+            json.dump(rawData, outfile, indent=4)
+
+        self.c_lock.release()
+        self.d_lock.release()
+
+        self.ui.vehSaveEdit.setText('')
+        self.ui.velSaveEdit.setText('')
+        self.ui.surSaveEdit.setText('')
+        self.ui.noteSaveEdit.setText('')
+
+        self.addEntry("All")
+
     def getOpenfiles(self):
 
         items = os.listdir(self.DataFolderPath)
@@ -1177,7 +1205,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
 
     def getSaveFiles(self):
-        text, ok = QtWidgets.QInputDialog.getText(self, 'Save Folder Name Dialog', 'Save Data Folder to:', text=datetime.datetime.now().strftime("Data %Y-%m-%d_%H%M"))
+
+        if self.ui.noteSaveEdit.text() == '':
+            preName = "V" + self.ui.vehSaveEdit.text() + "_" + self.ui.velSaveEdit.text() + "_" + self.ui.surSaveEdit.text()
+        else:
+            preName = "V" + self.ui.vehSaveEdit.text() + "_" + self.ui.velSaveEdit.text() + "_" + self.ui.surSaveEdit.text() + "_" + self.ui.noteSaveEdit.text()
+
+        preName = preName + "_" + datetime.datetime.now().strftime("%Y-%m-%d")
+        text, ok = QtWidgets.QInputDialog.getText(self, 'Save Folder Name Dialog', 'Save Data Folder to:', text=preName)
         folder = str(text)
         if ok:
             if folder in os.listdir(self.DataFolderPath):
