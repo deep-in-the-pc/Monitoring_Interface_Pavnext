@@ -58,25 +58,29 @@ class serialThread (QThread):
         self.c_lock.release()
 
     def getHeader(self):
+        packet = bytearray()
+        packet.append(0x42)
+        nbyte = self.serialConnection.write(packet)
+        print(nbyte)
         self.config = {}
-
+        print("Starting read...")
         startline = self.serialConnection.readline()
-        #print(startline)
+        print(startline)
         if(startline != b"start\n"):
             return 1
         nSlaves = self.serialConnection.read(1)[0]
-        #print(nSlaves)
+        print(nSlaves)
         for n1 in range(nSlaves):
             address = self.serialConnection.read(1)[0]
-            #print(address, "address")
+            print(address, "address")
             microprocessor = self.serialConnection.read(1)[0]
-            #print(microprocessor, "microprocessor")
+            print(microprocessor, "microprocessor")
             status = self.serialConnection.read(1)[0]
-            #print(status, "status")
+            print(status, "status")
             position_m = self.serialConnection.read(1)[0]
-            #print(position_m, "position_m")
+            print(position_m, "position_m")
             unit = self.serialConnection.read(1)[0]
-            #print(unit, "unit")
+            print(unit, "unit")
 
             self.config[position_m] = {}
             self.config[position_m]['address'] = address
@@ -86,24 +90,24 @@ class serialThread (QThread):
             self.config[position_m]['unit'] = unit
             self.config[position_m]['sensors'] = {}
             nSensors = self.serialConnection.read(1)[0]
-            #print(nSensors, "nSensors")
+            print(nSensors, "nSensors")
             for n2 in range(nSensors):
                 function = self.serialConnection.read(1)[0]
-                #print(function, "function nSensors")
+                print(function, "function nSensors")
                 status = self.serialConnection.read(1)[0]
-                #print(status, "status nSensors")
+                print(status, "status nSensors")
                 restval_byte = self.serialConnection.read(2)
                 restval = restval_byte[0] + restval_byte[1]*256
-                #print(restval, "restval nSensors")
+                print(restval, "restval nSensors")
                 position_s = self.serialConnection.read(1)[0]
-                #print(position_s, "position_s")
+                print(position_s, "position_s")
                 self.config[position_m]['sensors'][position_s] = {}
                 self.config[position_m]['sensors'][position_s]["function"] = function
                 self.config[position_m]['sensors'][position_s]["status"] = status
                 self.config[position_m]['sensors'][position_s]["restval"] = restval
                 self.config[position_m]['sensors'][position_s]["position"] = position_s
         endline = self.serialConnection.readline()
-        #print(endline)
+        print(endline)
         if(endline != b"end\n"):
             return 1
         #print(self.config)

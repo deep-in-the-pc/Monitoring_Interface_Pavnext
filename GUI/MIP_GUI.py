@@ -67,7 +67,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialConnectionParameters.append(serial.EIGHTBITS)
         self.serialConnectionParameters.append(serial.PARITY_NONE)
         self.serialConnectionParameters.append(serial.STOPBITS_ONE)
-        self.serialConnectionParameters.append(500000)
+        self.serialConnectionParameters.append(115200)
 
 
 
@@ -359,18 +359,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     elif int(slaveKey) == 1 and int(sensorKey) == 19:
                         m14_sl2 = True
                     elif int(slaveKey) == 1 and int(sensorKey) == 33:
-                        m14_acelx = True
-                    elif int(slaveKey) == 1 and int(sensorKey) == 34:
-                        m14_acely = True
-                    elif int(slaveKey) == 1 and int(sensorKey) == 35:
-                        m14_acelz = True
-                    elif int(slaveKey) == 1 and int(sensorKey) == 49:
                         m14_sl3 = True
-                    elif int(slaveKey) == 1 and int(sensorKey) == 50:
+                    elif int(slaveKey) == 1 and int(sensorKey) == 34:
                         m14_sl4 = True
-                    elif int(slaveKey) == 1 and int(sensorKey) == 51:
+                    elif int(slaveKey) == 1 and int(sensorKey) == 35:
                         m14_sl5 = True
-                    
+                    elif int(slaveKey) == 1 and int(sensorKey) == 49:
+                        m14_acelx = True
+                    elif int(slaveKey) == 1 and int(sensorKey) == 50:
+                        m14_acely = True
+                    elif int(slaveKey) == 1 and int(sensorKey) == 51:
+                        m14_acelz = True
+
                     elif int(slaveKey) == 2 and int(sensorKey) == 17:
                         m10acelx = True
                     elif int(slaveKey) == 2 and int(sensorKey) == 18:
@@ -503,24 +503,24 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # m14_acelx
         if m14_acelx:
             try:
-                self.m14_acelx_x = self.Entries["1"]["sensors"]["33"]["time"]
-                self.m14_acelx_y = self.Entries["1"]["sensors"]["33"]["dataNR"]
+                self.m14_acelx_x = self.Entries["1"]["sensors"]["49"]["time"]
+                self.m14_acelx_y = self.Entries["1"]["sensors"]["49"]["dataNR"]
             except Exception:
                 None
 
         # m14_acely
         if m14_acely:
             try:
-                self.m14_acely_x = self.Entries["1"]["sensors"]["34"]["time"]
-                self.m14_acely_y = self.Entries["1"]["sensors"]["34"]["dataNR"]
+                self.m14_acely_x = self.Entries["1"]["sensors"]["50"]["time"]
+                self.m14_acely_y = self.Entries["1"]["sensors"]["50"]["dataNR"]
             except Exception:
                 None
 
         # m14_acelz
         if m14_acelz:
             try:
-                self.m14_acelz_x = self.Entries["1"]["sensors"]["35"]["time"]
-                self.m14_acelz_y = self.Entries["1"]["sensors"]["35"]["dataNR"]
+                self.m14_acelz_x = self.Entries["1"]["sensors"]["51"]["time"]
+                self.m14_acelz_y = self.Entries["1"]["sensors"]["51"]["dataNR"]
             except Exception:
                 None
 
@@ -551,24 +551,24 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # m14_sl3
         if m14_sl3:
             try:
-                self.m14_sl3_x = self.Entries["1"]["sensors"]["49"]["time"]
-                self.m14_sl3_y = self.Entries["1"]["sensors"]["49"]["dataR"]
+                self.m14_sl3_x = self.Entries["1"]["sensors"]["33"]["time"]
+                self.m14_sl3_y = self.Entries["1"]["sensors"]["33"]["dataR"]
             except Exception:
                 None
 
         # m14_sl4
         if m14_sl4:
             try:
-                self.m14_sl4_x = self.Entries["1"]["sensors"]["50"]["time"]
-                self.m14_sl4_y = self.Entries["1"]["sensors"]["50"]["dataR"]
+                self.m14_sl4_x = self.Entries["1"]["sensors"]["34"]["time"]
+                self.m14_sl4_y = self.Entries["1"]["sensors"]["34"]["dataR"]
             except Exception:
                 None
 
         # m14_sl5
         if m14_sl5:
             try:
-                self.m14_sl5_x = self.Entries["1"]["sensors"]["51"]["time"]
-                self.m14_sl5_y = self.Entries["1"]["sensors"]["51"]["dataR"]
+                self.m14_sl5_x = self.Entries["1"]["sensors"]["35"]["time"]
+                self.m14_sl5_y = self.Entries["1"]["sensors"]["35"]["dataR"]
             except Exception:
                 None
 
