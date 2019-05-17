@@ -72,6 +72,7 @@ class processThread (QThread):
             if (self.config == None):
                 self.getRawJson()
             if self.newRawEvent.is_set():
+
                 toBeUpdated = {}
                 self.getRawJson()
                 self.newRawEvent.clear()
@@ -90,10 +91,8 @@ class processThread (QThread):
                             if sensorDataEntry['id'] in self.entries[slaveKey]['sensors'][sensorKey]['dataList']:
                                 continue
                             else:
-
                                 if sensorKey not in toBeUpdated[slaveKey]:
                                     toBeUpdated[slaveKey].append(sensorKey)
-
                                 self.entries[slaveKey]['sensors'][sensorKey]['dataList'].append(sensorDataEntry['id'])
                                 (dataR, dataNR) = dataConverter(self.config[slaveKey], sensorKey, sensorDataEntry['id'])
                                 if(dataR):
@@ -104,11 +103,13 @@ class processThread (QThread):
                                     if 'dataNR' not in self.entries[slaveKey]['sensors'][sensorKey]:
                                         self.entries[slaveKey]['sensors'][sensorKey]['dataNR'] = []
                                     self.entries[slaveKey]['sensors'][sensorKey]['dataNR'] = self.entries[slaveKey]['sensors'][sensorKey]['dataNR'] + dataNR
-                                #TODO change to definitive time
                                 if('time' not in self.entries[slaveKey]['sensors'][sensorKey]):
                                     self.entries[slaveKey]['sensors'][sensorKey]['time'] = []
-                                time = len(self.entries[slaveKey]['sensors'][sensorKey]['time'])
-                                self.entries[slaveKey]['sensors'][sensorKey]['time'] = self.entries[slaveKey]['sensors'][sensorKey]['time'] + [i for i in range(time, time + sensorDataEntry['size'])]
+                                time = self.config[slaveKey]['sensors'][sensorKey]["entries"][sensorDataEntry['id']]['time']
+                                self.entries[slaveKey]['sensors'][sensorKey]['time'] = self.entries[slaveKey]['sensors'][sensorKey]['time'] + time
                 self.setJson()
 
-                self.addEntrySignal.emit(toBeUpdated)
+                for i in toBeUpdated:
+                    if(len(toBeUpdated[i])>0):
+                        self.addEntrySignal.emit(toBeUpdated)
+                        break

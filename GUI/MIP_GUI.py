@@ -6,7 +6,6 @@ import threading
 import datetime
 from serialListener import *
 from dataProcess import *
-from time import sleep
 from util import *
 from math import ceil
 #for UI
@@ -54,12 +53,20 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.ignoreSConfigs = True
         #self.ignoreSConfigs = True
 
+        self.ten_second_timer_flag = False
+        self.toBeUpdated_count = 0
+        self.graph_qtimer = QtCore.QTimer(self)
+        self.graph_qtimer.timeout.connect(self.update_graph_timer_timeout)
+        self.graph_qtimer.start(10000)
 
+        self.total_toBeUpdated = {}
         #configure serial connection
 
         self.d_lock = threading.Lock()
         self.c_lock = threading.Lock()
-        
+
+
+
         self.serialListenerThread = serialThread(1, "SerialListener", self.c_lock)
         self.processThread = processThread(2, "Process", self.d_lock, self.c_lock)
 
@@ -68,9 +75,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialConnectionParameters.append(serial.PARITY_NONE)
         self.serialConnectionParameters.append(serial.STOPBITS_ONE)
         self.serialConnectionParameters.append(115200)
+        #self.serialConnectionParameters.append(500000)
 
-
-
+        self.serialListenerThread.closeEvent.set()
+        self.serialListenerThread.addRawEntrySignal[list].connect(self.addRawEntry)
         #Setup GraphicsLayoutWidget M10
 
         self.m10_w1 = self.ui.graphWindowM10.addPlot(row=0, col=0, title='Acel')
@@ -181,7 +189,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
 
         #Signal from Thread
-        self.serialListenerThread.addRawEntrySignal.connect(self.addRawEntry)
 
         self.serialConnectionParameters.append(self.serialCOM)
         self.serialListenerThread.setParameteres(self.serialConnectionParameters)
@@ -193,13 +200,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #self.processThread = processThread(2, "Process", self.d_lock, self.c_lock)
 
         #Signal from Thread
-        self.processThread.addEntrySignal[dict].connect(self.addEntry)
+        self.processThread.addEntrySignal[dict].connect(self.newData)
 
         self.processThread.rawConfigFile = self.saveRawFile
         self.processThread.rawConfigFileBU = self.saveRawFileBackup
         self.processThread.dataFile = self.saveDataFile
         self.processThread.dataFileBU = self.saveDataFileBU
         self.processThread.start()
+
     #COMMUNICATION
     def getCOMList(self):
         self.ui.targetComCB.clear()
@@ -208,13 +216,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
 
     def targetConnectionCB(self):
-        # if self.saveRawFileBackup == None or self.saveRawFile == None:
-        #     self.getsaveRawFiles()
-        #     return
-        if self.serialListenerThread.isRunning():
+
+        if not self.serialListenerThread.closeEvent.is_set():
             self.closeSerialConnetion()
             self.ui.targetComConnectButton.setText("Connect")
         elif(self.serialCOM != None):
+            self.serialListenerThread.closeEvent.clear()
+            self.processThread.closeEvent.clear()
             if(self.establishConnection()):
                 # If connection is established set text as disconnect
                 self.ui.targetComConnectButton.setText("Disconnect")
@@ -226,8 +234,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def establishConnection(self):
         try:
             self.startSerialThread()
+            #print("serialListenerThread isRunning", self.serialListenerThread.isRunning())
             if self.serialListenerThread.isRunning():
                 self.startProcessThread()
+                #print("processThread isRunning", self.processThread.isRunning())
                 self.ui.connectionStatusLabel.setText("Connection Status: Online")
                 return 1
             else:
@@ -239,8 +249,23 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #Set event flag to close thread
         self.serialListenerThread.closeEvent.set()
         self.processThread.closeEvent.set()
-        print(self.serialListenerThread.isRunning())
         self.ui.connectionStatusLabel.setText("Connection Status: Offline")
+
+    def newData(self, toBeUpdated):
+
+        for key in toBeUpdated:
+            if key not in self.total_toBeUpdated:
+                self.total_toBeUpdated[key] = []
+            for val in toBeUpdated[key]:
+                if val not in self.total_toBeUpdated[key]:
+                    self.total_toBeUpdated[key].append(val)
+                    self.toBeUpdated_count = self.toBeUpdated_count + 1
+
+        if self.toBeUpdated_count > 10 or self.ten_second_timer_flag and self.toBeUpdated_count > 0:
+            print(self.total_toBeUpdated, self.ten_second_timer_flag)
+            self.toBeUpdated_count = 0
+            self.ten_second_timer_flag = False
+            self.addEntry(self.total_toBeUpdated)
 
     def addEntry(self, toBeUpdated):
         if toBeUpdated == "All":
@@ -864,7 +889,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         if (g14):
             self.addPlotG14(g14)
 
-    def addRawEntry(self):
+    def addRawEntry(self, data):
+        #print("Got new raw data", data)
         self.processThread.newRawEvent.set()
 
     def addPlotM10(self, m10):
@@ -1350,6 +1376,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         msg.setWindowTitle("File Opened")
         msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msg.exec_()
+
+    def update_graph_timer_timeout(self):
+        self.ten_second_timer_flag = True
 
 def main():
     app = QtWidgets.QApplication(sys.argv)

@@ -14,7 +14,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 class serialThread (QThread):
 
-    addRawEntrySignal = pyqtSignal()
+    addRawEntrySignal = pyqtSignal(list)
     closedSignal = pyqtSignal()
 
     def __init__(self, threadID, name, c_lock):
@@ -63,13 +63,13 @@ class serialThread (QThread):
         nbyte = self.serialConnection.write(packet)
         print(nbyte)
         self.config = {}
-        print("Starting read...")
+        #print("Starting read...")
         startline = self.serialConnection.readline()
-        print(startline)
+        #print(startline)
         if(startline != b"start\n"):
             return 1
         nSlaves = self.serialConnection.read(1)[0]
-        print(nSlaves)
+        #print(nSlaves)
         for n1 in range(nSlaves):
             address = self.serialConnection.read(1)[0]
             print(address, "address")
@@ -107,7 +107,7 @@ class serialThread (QThread):
                 self.config[position_m]['sensors'][position_s]["restval"] = restval
                 self.config[position_m]['sensors'][position_s]["position"] = position_s
         endline = self.serialConnection.readline()
-        print(endline)
+        #print(endline)
         if(endline != b"end\n"):
             return 1
         #print(self.config)
@@ -117,35 +117,60 @@ class serialThread (QThread):
 
     def getEntry(self):
         line = self.serialConnection.read(6)
+        print(line)
         x = re.findall("DATA", str(line[0:4]))
         if (x):
             slave_pos = line[4]
             sensor_pos = line[5]
+            print("Slave_pos", slave_pos)
+            print("Sensor_pos", sensor_pos)
             sizeD = self.serialConnection.read(2)
-
-            nBytes = sizeD[0] + sizeD[1] * 256
-            data = self.serialConnection.read(nBytes)
+            print(sizeD)
+            nBytesd = (sizeD[0] + sizeD[1] * 256)*2
+            print(nBytesd)
+            data = self.serialConnection.read(nBytesd)
 
             #print(line)
-            #print("Slave_pos", slave_pos)
-            #print("Sensor_pos", sensor_pos)
+            # print("Slave_pos", slave_pos)
+            # print("Sensor_pos", sensor_pos)
             #print(sizeD)
-            #print(nBytes)
-            #print(data)
+            #print(nBytesd)
+            print(data)
 
-            if (nBytes == 0):
-                print("No data in package")
+            line = self.serialConnection.read(4)
+            x = re.findall("TIME", str(line[0:4]))
+            if (x):
+
+                sizeT = self.serialConnection.read(2)
+
+                nBytest = (sizeT[0] + sizeT[1] * 256)*2
+                tempo = self.serialConnection.read(nBytest)
+
+                print(line)
+                print(sizeT)
+                print(nBytest)
+                print(tempo)
+            else:
+                print("Didn't receive time")
                 return 1
 
+                if (nBytesd == 0):
+                    print("No data in package")
+                    return 1
+                if (nBytesd != nBytest):
+                    print("Data and Time differ in size")
+                    return 1
+
             sData = []
+            sTime = []
             # convert data from byte array to int list
             #print("=================STARTED==================")
             for c in range(0, len(data), 2):
-                # int.from_bytes(data[c]+data[c+1], "little")
-                ##print(data[c] + data[c + 1] * 256)
                 sData.append(data[c] + data[c + 1] * 256)
+            for c in range(0, len(tempo), 2):
+                sTime.append(tempo[c] + tempo[c + 1] * 256)
             #print("=================FINISHED==================")
-            return (slave_pos, sensor_pos, sData)
+            return (slave_pos, sensor_pos, sData, sTime)
         return 1
 
     def run(self):
@@ -177,7 +202,7 @@ class serialThread (QThread):
                     slave_pos = entry[0]
                     sensor_pos = entry[1]
                     sData = entry[2]
-
+                    sTime = entry[3]
 
                     #Check if Slave exists in DB
                     if slave_pos not in self.config:
@@ -192,13 +217,14 @@ class serialThread (QThread):
 
                     currentid = len(self.config[slave_pos]["sensors"][sensor_pos]['entries'])
 
-                    newEntry = {'id': currentid, 'size': len(sData), 'data': sData}
+                    newEntry = {'id': currentid, 'size': len(sData), 'data': sData, 'time': sTime}
 
                     self.config[slave_pos]["sensors"][sensor_pos]['entries'].append(newEntry)
 
                     self.setJson()
-
-                    self.addRawEntrySignal.emit()
+                    #print("inside serial", slave_pos, sensor_pos)
+                    self.addRawEntrySignal.emit([slave_pos, sensor_pos])
                     #print("================ENTRY ADDED================")
 
         self.serialConnection.close()
+        #print("serialListener", self.serialConnection.is_open)
