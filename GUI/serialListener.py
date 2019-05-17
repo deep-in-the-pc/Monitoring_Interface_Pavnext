@@ -168,7 +168,9 @@ class serialThread (QThread):
             for c in range(0, len(data), 2):
                 sData.append(data[c] + data[c + 1] * 256)
             for c in range(0, len(tempo), 2):
-                sTime.append(tempo[c] + tempo[c + 1] * 256)
+                segundos = tempo[c+1]>>2
+                milisegundos = (tempo[c+1] & 3) * 256 + tempo[c]
+                sTime.append(segundos*1000+milisegundos)
             #print("=================FINISHED==================")
             return (slave_pos, sensor_pos, sData, sTime)
         return 1
