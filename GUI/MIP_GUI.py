@@ -74,8 +74,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialConnectionParameters.append(serial.EIGHTBITS)
         self.serialConnectionParameters.append(serial.PARITY_NONE)
         self.serialConnectionParameters.append(serial.STOPBITS_ONE)
-        self.serialConnectionParameters.append(115200)
-        #self.serialConnectionParameters.append(500000)
+        #self.serialConnectionParameters.append(115200)
+        self.serialConnectionParameters.append(500000)
 
         self.serialListenerThread.closeEvent.set()
         self.serialListenerThread.addRawEntrySignal[list].connect(self.addRawEntry)
@@ -96,10 +96,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #Setup GraphicsLayoutWidget M14
 
         self.m14_w1 = self.ui.graphWindowM14.addPlot(row=0, col=0, title='Pos V')
-        self.m14_w1.setRange(xRange=[0, 101], yRange=[0, 345])
+        self.m14_w1.setRange(xRange=[0, 1000], yRange=[0, 30])
         self.m14_w1.showGrid(x=True, y=True, alpha=0.7)
         self.m14_w2 = self.ui.graphWindowM14.addPlot(row=1, col=0, title='Acel')
-        self.m14_w2.setRange(xRange=[0, 101], yRange=[-215,215])
+        self.m14_w2.setRange(xRange=[0, 80], yRange=[-4,4])
         self.m14_w2.showGrid(x=True, y=True, alpha=0.7)
 
         self.m14_w1_l = LegendItem((80,30), offset=(60,30))
@@ -172,6 +172,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         else:
             self.serialCOM = self.ui.targetComCB.currentText()
 
+        #TODO add entries to plot list
+        #TODO show entries in plot list depending on current graph tab
+        #TODO move graph to plot position after selection
+
         #combo box Callback
         self.ui.targetComCB.activated[str].connect(self.onTargetComCBActivated)
 
@@ -185,6 +189,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.openDataButton.clicked.connect(self.getOpenfiles)
         #clearGraphButton Callback
         self.ui.clearGraphButton.clicked.connect(self.clearGraph)
+
     def startSerialThread(self):
         #self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
 
@@ -213,7 +218,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.targetComCB.clear()
         self.ui.targetComCB.addItems([comport.device for comport in serial.tools.list_ports.comports()])
         self.serialCOM = self.ui.targetComCB.currentText()
-
 
     def targetConnectionCB(self):
 
@@ -260,14 +264,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if val not in self.total_toBeUpdated[key]:
                     self.total_toBeUpdated[key].append(val)
                     self.toBeUpdated_count = self.toBeUpdated_count + 1
-
         if self.toBeUpdated_count > 10 or self.ten_second_timer_flag and self.toBeUpdated_count > 0:
-            print(self.total_toBeUpdated, self.ten_second_timer_flag)
             self.toBeUpdated_count = 0
             self.ten_second_timer_flag = False
             self.addEntry(self.total_toBeUpdated)
+            self.total_toBeUpdated = {}
 
     def addEntry(self, toBeUpdated):
+
         if toBeUpdated == "All":
             updateAll = True
 
