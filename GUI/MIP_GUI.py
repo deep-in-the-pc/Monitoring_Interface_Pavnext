@@ -1255,8 +1255,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         if(slave == "1"):
             if(sensor == "17" or sensor == "18" or sensor == "19" or sensor == "33" or sensor == "34" or sensor == "35"):
                 self.m14_w1.setRange(xRange=[xmin*xminmul, xmax*xmaxmul], yRange=[ymin*yminmul, ymax*ymaxmul])
+                self.ui.labelMinLineAM14.setText("Min: "+str(round(ymin, 2)))
+                self.ui.labelMaxLineAM14.setText("Max: " + str(round(ymax, 2)))
             elif(sensor == "49" or sensor == "50" or sensor == "51"):
                 self.m14_w2.setRange(xRange=[xmin*xminmul, xmax*xmaxmul], yRange=[ymin*yminmul, ymax*ymaxmul])
+                self.ui.labelMinLineBM14.setText("Min: "+str(round(ymin, 2)))
+                self.ui.labelMaxLineBM14.setText("Max: " + str(round(ymax, 2)))
         elif(slave == "2"):
             if(sensor == "17" or sensor == "18" or sensor == "19"):
                 self.m10_w1.setRange(xRange=[xmin*xminmul, xmax*xmaxmul], yRange=[ymin*yminmul, ymax*ymaxmul])
