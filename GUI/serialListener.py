@@ -117,28 +117,29 @@ class serialThread (QThread):
 
     def getEntry(self):
         line = self.serialConnection.read(6)
-        print(line)
+        #print(line)
         x = re.findall("DATA", str(line[0:4]))
         if (x):
             slave_pos = line[4]
             sensor_pos = line[5]
-            print("Slave_pos", slave_pos)
-            print("Sensor_pos", sensor_pos)
+            # print("Slave_pos", slave_pos)
+            # print("Sensor_pos", sensor_pos)
             sizeD = self.serialConnection.read(2)
-            print(sizeD)
+            # print(sizeD)
             nBytesd = (sizeD[0] + sizeD[1] * 256)*2
-            print(nBytesd)
+            #print(nBytesd)
             data = self.serialConnection.read(nBytesd)
 
             #print(line)
-            # print("Slave_pos", slave_pos)
-            # print("Sensor_pos", sensor_pos)
+            #print("Slave_pos", slave_pos)
+            #print("Sensor_pos", sensor_pos)
             #print(sizeD)
             #print(nBytesd)
-            print(data)
+            #print(data)
 
             line = self.serialConnection.read(4)
             x = re.findall("TIME", str(line[0:4]))
+            # print(line)
             if (x):
 
                 sizeT = self.serialConnection.read(2)
@@ -146,10 +147,10 @@ class serialThread (QThread):
                 nBytest = (sizeT[0] + sizeT[1] * 256)*2
                 tempo = self.serialConnection.read(nBytest)
 
-                print(line)
-                print(sizeT)
-                print(nBytest)
-                print(tempo)
+                # print(line)
+                # print(sizeT)
+                # print(nBytest)
+                # print(tempo)
             else:
                 print("Didn't receive time")
                 return 1

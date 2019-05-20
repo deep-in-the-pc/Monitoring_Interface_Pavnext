@@ -8,7 +8,6 @@ def dataConverter(slave, sensorid, dataid):
     #time = slave['sensors'][sensorid]["entries"][dataid]["time"]
     #processedTime = [i for i in range(time, time+len(data))]
     #TODO add remaining convertions
-    #TODO add time
     if(sensorName == "dlv"):
         processedR = list(map(lambda x: ((x-rstval)/(2**adcBit) * 300), data))
         processedNR = list(map(lambda x: ((x)/(2**adcBit) * 300), data))

@@ -82,10 +82,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #Setup GraphicsLayoutWidget M10
 
         self.m10_w1 = self.ui.graphWindowM10.addPlot(row=0, col=0, title='Acel')
-        self.m10_w1.setRange(xRange=[0, 101])
         self.m10_w1.showGrid(x=True, y=True, alpha=0.7)
         self.m10_w2 = self.ui.graphWindowM10.addPlot(row=1, col=0, title='Força')
-        self.m10_w2.setRange(xRange=[0, 101])
         self.m10_w2.showGrid(x=True, y=True, alpha=0.7)
         self.m10_w1_l = LegendItem((80,30), offset=(60,30))  # args are (size, offset)
         self.m10_w1_l.setParentItem(self.m10_w1)   # Note we do NOT call plt.addItem in this case
@@ -96,10 +94,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #Setup GraphicsLayoutWidget M14
 
         self.m14_w1 = self.ui.graphWindowM14.addPlot(row=0, col=0, title='Pos V')
-        self.m14_w1.setRange(xRange=[0, 1000], yRange=[0, 30])
         self.m14_w1.showGrid(x=True, y=True, alpha=0.7)
         self.m14_w2 = self.ui.graphWindowM14.addPlot(row=1, col=0, title='Acel')
-        self.m14_w2.setRange(xRange=[0, 80], yRange=[-4,4])
         self.m14_w2.showGrid(x=True, y=True, alpha=0.7)
 
         self.m14_w1_l = LegendItem((80,30), offset=(60,30))
@@ -111,16 +107,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #Setup GraphicsLayoutWidget G10
 
         self.g10_w1 = self.ui.graphWindowG10.addPlot(row=0, col=0, colspan=3, title='Gerador')
-        self.g10_w1.setRange(xRange=[0, 101])
         self.g10_w1.showGrid(x=True, y=True, alpha=0.7)
         self.g10_w4 = self.ui.graphWindowG10.addPlot(row=0, col=3, colspan=1, title='Potência')
-        self.g10_w4.setRange(xRange=[0, 101])
         self.g10_w4.showGrid(x=True, y=True, alpha=0.7)
         self.g10_w2 = self.ui.graphWindowG10.addPlot(row=1, col=0, colspan=4, title='Rotações')
-        self.g10_w2.setRange(xRange=[0, 101])
         self.g10_w2.showGrid(x=True, y=True, alpha=0.7)
         self.g10_w3 = self.ui.graphWindowG10.addPlot(row=2, col=0, colspan=4, title='ToF')
-        self.g10_w3.setRange(xRange=[0, 101])
         self.g10_w3.showGrid(x=True, y=True, alpha=0.7)
 
         self.g10_w1_l = LegendItem((80,30), offset=(60,30))
@@ -162,6 +154,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.g14_w4_l = LegendItem((80, 30), offset=(60, 30))
         self.g14_w4_l.setParentItem(self.g14_w4)
 
+        self.currentTabName = self.ui.tabWidgetGraphs.tabText(self.ui.tabWidgetGraphs.currentIndex()).split()[0]
+
+        self.M10Entries = []
+        self.M14Entries = []
+        self.G10Entries = []
+        self.G14Entries = []
+
         self.addEntry("All")
 
         #initialize combo box
@@ -171,10 +170,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.serialCOM = None
         else:
             self.serialCOM = self.ui.targetComCB.currentText()
-
-        #TODO add entries to plot list
-        #TODO show entries in plot list depending on current graph tab
-        #TODO move graph to plot position after selection
 
         #combo box Callback
         self.ui.targetComCB.activated[str].connect(self.onTargetComCBActivated)
@@ -189,7 +184,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.openDataButton.clicked.connect(self.getOpenfiles)
         #clearGraphButton Callback
         self.ui.clearGraphButton.clicked.connect(self.clearGraph)
-
+        #tabWidget tab change
+        self.ui.tabWidgetGraphs.currentChanged.connect(self.tabChangedCB)
+        #sensorEntryListWidget item selected
+        self.ui.sensorEntryListWidget.itemClicked.connect(self.sensorEntryListICCB)
     def startSerialThread(self):
         #self.serialListenerThread = serialThread(1, "SerialListener", self.d_lock)
 
@@ -224,6 +222,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         if not self.serialListenerThread.closeEvent.is_set():
             self.closeSerialConnetion()
             self.ui.targetComConnectButton.setText("Connect")
+            self.addEntry("All")
         elif(self.serialCOM != None):
             self.serialListenerThread.closeEvent.clear()
             self.processThread.closeEvent.clear()
@@ -263,8 +262,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for val in toBeUpdated[key]:
                 if val not in self.total_toBeUpdated[key]:
                     self.total_toBeUpdated[key].append(val)
-                    self.toBeUpdated_count = self.toBeUpdated_count + 1
+                self.toBeUpdated_count = self.toBeUpdated_count + 1
         if self.toBeUpdated_count > 10 or self.ten_second_timer_flag and self.toBeUpdated_count > 0:
+            print("Displaying", self.total_toBeUpdated, self.toBeUpdated_count)
             self.toBeUpdated_count = 0
             self.ten_second_timer_flag = False
             self.addEntry(self.total_toBeUpdated)
@@ -878,6 +878,31 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self.updatePlots(m10=m10, m14=m14, g10=g10, g14=g14)
 
+        #Filters
+        self.M14Entries = []
+        self.M10Entries = []
+        self.G14Entries = []
+        self.G10Entries = []
+
+        for module in self.Entries:
+            for sensor in self.Entries[module]['sensors']:
+                try:
+                    if module == '1':
+                        self.M14Entries.append((sensor, self.Entries[module]['sensors'][sensor]['dataList']))
+                    elif module == '2':
+                        self.M10Entries.append((sensor, self.Entries[module]['sensors'][sensor]['dataList']))
+                    elif module == '3':
+                        self.G14Entries.append((sensor, self.Entries[module]['sensors'][sensor]['dataList']))
+                    elif module == '4':
+                        self.G10Entries.append((sensor, self.Entries[module]['sensors'][sensor]['dataList']))
+                except Exception:
+                    None
+
+        self.currentEntriesFilter = {'M10': {'key':'2', 'entries': self.M10Entries}, 'M14': {'key':'1', 'entries': self.M14Entries}, 'G10': {'key':'4', 'entries': self.G10Entries}, 'G14': {'key':'3', 'entries': self.G14Entries}}
+        self.updateSensorEntryListWidget()
+
+
+
     def updatePlots(self, m10=None, m14=None, g10=None, g14=None):
         #print("M10", m10)
         #print("M14", m14)
@@ -894,7 +919,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.addPlotG14(g14)
 
     def addRawEntry(self, data):
-        #print("Got new raw data", data)
+        print("Got new raw data", data)
         self.processThread.newRawEvent.set()
 
     def addPlotM10(self, m10):
@@ -1211,7 +1236,53 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.surSaveEdit.setText('')
         self.ui.noteSaveEdit.setText('')
 
+
         self.addEntry("All")
+        self.updateSensorEntryListWidget()
+
+    def tabChangedCB(self):
+
+        self.currentTabName = self.ui.tabWidgetGraphs.tabText(self.ui.tabWidgetGraphs.currentIndex()).split()[0]
+        self.updateSensorEntryListWidget()
+
+    def sensorEntryListICCB(self, item):
+        slave, sensor, coords = item.data(32)
+        xmin, xmax, ymin, ymax = coords
+        xminmul = 0.95
+        yminmul = 0.9
+        xmaxmul = 1.05
+        ymaxmul = 1.1
+        if(slave == "1"):
+            if(sensor == "17" or sensor == "18" or sensor == "19" or sensor == "33" or sensor == "34" or sensor == "35"):
+                self.m14_w1.setRange(xRange=[xmin*xminmul, xmax*xmaxmul], yRange=[ymin*yminmul, ymax*ymaxmul])
+            elif(sensor == "49" or sensor == "50" or sensor == "51"):
+                self.m14_w2.setRange(xRange=[xmin*xminmul, xmax*xmaxmul], yRange=[ymin*yminmul, ymax*ymaxmul])
+        elif(slave == "2"):
+            if(sensor == "17" or sensor == "18" or sensor == "19"):
+                self.m10_w1.setRange(xRange=[xmin*xminmul, xmax*xmaxmul], yRange=[ymin*yminmul, ymax*ymaxmul])
+            elif(sensor == "33"):
+                self.m10_w2.setRange(xRange=[xmin*xminmul, xmax*xmaxmul], yRange=[ymin*yminmul, ymax*ymaxmul])
+        elif(slave == "3"):
+            print("not implemented yet")
+        elif(slave == "4"):
+            print("not implemented yet")
+    def updateSensorEntryListWidget(self):
+
+        self.ui.sensorEntryListWidget.clear()
+        slave = self.currentEntriesFilter[self.currentTabName]['key']
+
+        for ef in self.currentEntriesFilter[self.currentTabName]['entries']:
+            for entry in ef[1]:
+                try:
+                    dataListWin = slave, ef[0], self.Entries[slave]['sensors'][ef[0]]['dataListWin'][str(entry)]
+
+                    listEntry = QtWidgets.QListWidgetItem()
+                    listEntry.setText(str(ef[0])+"                        "+str(dataListWin[2][0]))
+                    listEntry.setData(32, dataListWin)
+                    self.ui.sensorEntryListWidget.addItem(listEntry)
+
+                except KeyError:
+                    print("Key not found")
 
     def getOpenfiles(self):
 
@@ -1232,7 +1303,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             retval = msg.exec_()
             if retval == 0x4000:
                 self.openFiles(folder)
-
 
     def getSaveFiles(self):
 
@@ -1261,7 +1331,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             else:
                 os.mkdir(self.DataFolderPath + "/" + folder)
                 self.saveFiles(folder)
-
 
     def saveFiles(self, folder):
         self.c_lock.acquire()
@@ -1383,7 +1452,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def update_graph_timer_timeout(self):
         self.ten_second_timer_flag = True
-
+        #print(self.ui.tabWidgetGraphs.tabText(self.ui.tabWidgetGraphs.currentIndex()).split()[0])
 def main():
     app = QtWidgets.QApplication(sys.argv)
     application = ApplicationWindow()

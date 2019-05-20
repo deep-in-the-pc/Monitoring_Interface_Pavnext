@@ -88,13 +88,17 @@ class processThread (QThread):
                         for sensorDataEntry in self.config[slaveKey]['sensors'][sensorKey]['entries']:
                             if 'dataList' not in self.entries[slaveKey]['sensors'][sensorKey]:
                                 self.entries[slaveKey]['sensors'][sensorKey]['dataList'] = list()
+                            if 'dataListWin' not in self.entries[slaveKey]['sensors'][sensorKey]:
+                                self.entries[slaveKey]['sensors'][sensorKey]['dataListWin'] = dict()
                             if sensorDataEntry['id'] in self.entries[slaveKey]['sensors'][sensorKey]['dataList']:
                                 continue
                             else:
                                 if sensorKey not in toBeUpdated[slaveKey]:
                                     toBeUpdated[slaveKey].append(sensorKey)
                                 self.entries[slaveKey]['sensors'][sensorKey]['dataList'].append(sensorDataEntry['id'])
+
                                 (dataR, dataNR) = dataConverter(self.config[slaveKey], sensorKey, sensorDataEntry['id'])
+
                                 if(dataR):
                                     if 'dataR' not in self.entries[slaveKey]['sensors'][sensorKey]:
                                         self.entries[slaveKey]['sensors'][sensorKey]['dataR'] = []
@@ -107,6 +111,7 @@ class processThread (QThread):
                                     self.entries[slaveKey]['sensors'][sensorKey]['time'] = []
                                 time = self.config[slaveKey]['sensors'][sensorKey]["entries"][sensorDataEntry['id']]['time']
                                 self.entries[slaveKey]['sensors'][sensorKey]['time'] = self.entries[slaveKey]['sensors'][sensorKey]['time'] + time
+                                self.entries[slaveKey]['sensors'][sensorKey]['dataListWin'][sensorDataEntry['id']] = (time[0], time[-1], min(dataNR), max(dataNR))
                 self.setJson()
 
                 for i in toBeUpdated:
