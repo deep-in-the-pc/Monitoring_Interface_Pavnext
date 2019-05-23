@@ -38,6 +38,23 @@ def dataConverter(slave, sensorid, dataid):
         None
     elif (sensorName == "tof"):
         None
+    elif (sensorName == "tem"):
+        Vsense = lambda x: (x*3.3)/(2**adcBit)
+        V25 = 1.43
+        Avg_slope = 0.0043
+        temp = lambda x: (V25-Vsense(x))/Avg_slope + 25
+        processedNR = list(map(lambda x: temp(x), data))
+    elif (sensorName == "tpt"):
+        vs = 5.01
+        r = 62.1
+        r1 = 986
+        r2 = 989
+        r3 = 986
+        vdiff = lambda x: (x*3.3)/(2**adcBit) / (4 + 60 / r)
+        res = lambda x: (r1 * vs + (r1 + r2) * (vdiff(x))) / (r2 * vs - (r1 + r2) * (vdiff(x))) * r3
+        temp = lambda x: 0.000012218 * (res(x) ** 2) + 0.2294 * res(x) - 241.3
+
+        processedNR = list(map(lambda x: temp(x), data))
 
     return((processedR, processedNR))#, processedTime)
 
@@ -78,5 +95,6 @@ def headerDecoder(uC, function):
         sensorName = "rha"
     elif (function == 14):
         sensorName = "tof"
-
+    elif (function == 15):
+        sensorName = "tpt"
     return adcBit, volt, sensorName

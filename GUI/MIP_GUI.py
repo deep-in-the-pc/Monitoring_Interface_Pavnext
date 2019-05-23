@@ -106,53 +106,20 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         #Setup GraphicsLayoutWidget G10
 
-        self.g10_w1 = self.ui.graphWindowG10.addPlot(row=0, col=0, colspan=3, title='Gerador')
+        self.g10_w1 = self.ui.graphWindowG10.addPlot(row=0, col=0, title='Temperatura')
         self.g10_w1.showGrid(x=True, y=True, alpha=0.7)
-        self.g10_w4 = self.ui.graphWindowG10.addPlot(row=0, col=3, colspan=1, title='Potência')
-        self.g10_w4.showGrid(x=True, y=True, alpha=0.7)
-        self.g10_w2 = self.ui.graphWindowG10.addPlot(row=1, col=0, colspan=4, title='Rotações')
-        self.g10_w2.showGrid(x=True, y=True, alpha=0.7)
-        self.g10_w3 = self.ui.graphWindowG10.addPlot(row=2, col=0, colspan=4, title='ToF')
-        self.g10_w3.showGrid(x=True, y=True, alpha=0.7)
 
-        self.g10_w1_l = LegendItem((80,30), offset=(60,30))
+        self.g10_w1_l = LegendItem((180,30), offset=(60,30))
         self.g10_w1_l.setParentItem(self.g10_w1)
 
-        self.g10_w2_l = LegendItem((80,30), offset=(60,30))
-        self.g10_w2_l.setParentItem(self.g10_w2)
-
-        self.g10_w3_l = LegendItem((80,30), offset=(60,30))
-        self.g10_w3_l.setParentItem(self.g10_w3)
-
-        self.g10_w4_l = LegendItem((80,30), offset=(60,30))
-        self.g10_w4_l.setParentItem(self.g10_w4)
 
         # Setup GraphicsLayoutWidget G14
 
-        self.g14_w1 = self.ui.graphWindowG14.addPlot(row=0, col=0, colspan=3, title='Gerador')
-        self.g14_w1.setRange(xRange=[0, 101])
+        self.g14_w1 = self.ui.graphWindowG14.addPlot(row=0, col=0, title='Pos V')
         self.g14_w1.showGrid(x=True, y=True, alpha=0.7)
-        self.g14_w4 = self.ui.graphWindowG14.addPlot(row=0, col=3, colspan=1, title='Potência')
-        self.g14_w4.setRange(xRange=[0, 101])
-        self.g14_w4.showGrid(x=True, y=True, alpha=0.7)
-        self.g14_w2 = self.ui.graphWindowG14.addPlot(row=1, col=0, colspan=4, title='Rotações')
-        self.g14_w2.setRange(xRange=[0, 101])
-        self.g14_w2.showGrid(x=True, y=True, alpha=0.7)
-        self.g14_w3 = self.ui.graphWindowG14.addPlot(row=2, col=0, colspan=4, title='Pos V + Pos H')
-        self.g14_w3.setRange(xRange=[0, 101])
-        self.g14_w3.showGrid(x=True, y=True, alpha=0.7)
 
-        self.g14_w1_l = LegendItem((80, 30), offset=(60, 30))
+        self.g14_w1_l = LegendItem((80,30), offset=(60,30))
         self.g14_w1_l.setParentItem(self.g14_w1)
-
-        self.g14_w2_l = LegendItem((80, 30), offset=(60, 30))
-        self.g14_w2_l.setParentItem(self.g14_w2)
-
-        self.g14_w3_l = LegendItem((80, 30), offset=(60, 30))
-        self.g14_w3_l.setParentItem(self.g14_w3)
-
-        self.g14_w4_l = LegendItem((80, 30), offset=(60, 30))
-        self.g14_w4_l.setParentItem(self.g14_w4)
 
         self.currentTabName = self.ui.tabWidgetGraphs.tabText(self.ui.tabWidgetGraphs.currentIndex()).split()[0]
 
@@ -288,32 +255,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             m10acelx = True
             m10acely = True
             m10acelz = True
-            m10forc = True
-
-            g14_hall1 = True
-            g14_hall2 = True
-            g14_curr1 = True
-            g14_curr2 = True
-            g14_volt1 = True
-            g14_volt2 = True
-            g14_pulse1 = True
-            g14_pulse2 = True
-            g14_slhe = True
-            g14_slhd = True
+            m10force = True
+            m10forcd = True
+            
             g14_slve = True
             g14_slvd = True
 
-            g10_tof = True
-            g10_EL1 = True
-            g10_EL2 = True
-            g10_hall1 = True
-            g10_hall2 = True
-            g10_volt1 = True
-            g10_volt2 = True
-            g10_curr1 = True
-            g10_curr2 = True
-            g10_pulse1 = True
-            g10_pulse2 = True
+            g10_tempb = True
+            g10_tempt = True
+            g10_tempa = True
             
         else:
             updateAll = False
@@ -331,32 +281,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             m10acelx = False
             m10acely = False
             m10acelz = False
-            m10forc = False
+            m10force = False
+            m10forcd = False
 
-            g14_hall1 = False
-            g14_hall2 = False
-            g14_curr1 = False
-            g14_curr2 = False
-            g14_volt1 = False
-            g14_volt2 = False
-            g14_pulse1 = False
-            g14_pulse2 = False
-            g14_slhe = False
-            g14_slhd = False
             g14_slve = False
             g14_slvd = False
 
-            g10_tof = False
-            g10_EL1 = False
-            g10_EL2 = False
-            g10_hall1 = False
-            g10_hall2 = False
-            g10_volt1 = False
-            g10_volt2 = False
-            g10_curr1 = False
-            g10_curr2 = False
-            g10_pulse1 = False
-            g10_pulse2 = False
+            g10_tempb = False
+            g10_tempt = False
+            g10_tempa = False
 
         # Used on trigger by thread signal
         self.d_lock.acquire()
@@ -407,55 +340,22 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     elif int(slaveKey) == 2 and int(sensorKey) == 19:
                         m10acelz = True
                     elif int(slaveKey) == 2 and int(sensorKey) == 33:
-                        m10forc = True
+                        m10force = True
+                    elif int(slaveKey) == 2 and int(sensorKey) == 35:
+                        m10forcd = True
 
-                    elif int(slaveKey) == 3 and int(sensorKey) == 11:
-                        g14_hall1 = True
-                    elif int(slaveKey) == 3 and int(sensorKey) == 12:
-                        g14_hall2 = True
-                    elif int(slaveKey) == 3 and int(sensorKey) == 21:
-                        g14_curr1 = True
-                    elif int(slaveKey) == 3 and int(sensorKey) == 22:
-                        g14_curr2 = True
-                    elif int(slaveKey) == 3 and int(sensorKey) == 31:
-                        g14_volt1 = True
-                    elif int(slaveKey) == 3 and int(sensorKey) == 32:
-                        g14_volt2 = True
-                    elif int(slaveKey) == 3 and int(sensorKey) == 41:
-                        g14_pulse1 = True
-                    elif int(slaveKey) == 3 and int(sensorKey) == 42:
-                        g14_pulse2 = True
-                    elif int(slaveKey) == 3 and int(sensorKey) == 51:
-                        g14_slhe = True
-                    elif int(slaveKey) == 3 and int(sensorKey) == 52:
-                        g14_slhd = True
-                    elif int(slaveKey) == 3 and int(sensorKey) == 61:
+                    elif int(slaveKey) == 3 and int(sensorKey) == 17:
                         g14_slve = True
-                    elif int(slaveKey) == 3 and int(sensorKey) == 62:
+                    elif int(slaveKey) == 3 and int(sensorKey) == 19:
                         g14_slvd = True
 
-                    elif int(slaveKey) == 4 and int(sensorKey) == 11:
-                        g10_tof = True
-                    elif int(slaveKey) == 4 and int(sensorKey) == 21:
-                        g10_EL1 = True
-                    elif int(slaveKey) == 4 and int(sensorKey) == 22:
-                        g10_EL2 = True
-                    elif int(slaveKey) == 4 and int(sensorKey) == 31:
-                        g10_hall1 = True
-                    elif int(slaveKey) == 4 and int(sensorKey) == 32:
-                        g10_hall2 = True
-                    elif int(slaveKey) == 4 and int(sensorKey) == 41:
-                        g10_volt1 = True
-                    elif int(slaveKey) == 4 and int(sensorKey) == 42:
-                        g10_volt2 = True
-                    elif int(slaveKey) == 4 and int(sensorKey) == 51:
-                        g10_curr1 = True
-                    elif int(slaveKey) == 4 and int(sensorKey) == 52:
-                        g10_curr2 = True
-                    elif int(slaveKey) == 4 and int(sensorKey) == 61:
-                        g10_pulse1 = True
-                    elif int(slaveKey) == 4 and int(sensorKey) == 62:
-                        g10_pulse2 = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 17:
+                        g10_tempb = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 18:
+                        g10_tempt = True
+                    elif int(slaveKey) == 4 and int(sensorKey) == 19:
+                        g10_tempa = True
+
 
 
         # UPDATE data lists
@@ -469,9 +369,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.m10_acelz_x = []
         self.m10_acelz_y = []
 
-        self.m10_forca_x = []
-        self.m10_forca_y = []
+        self.m10_forcae_x = []
+        self.m10_forcae_y = []
 
+        self.m10_forcad_x = []
+        self.m10_forcad_y = []
         # m10_acelx
         if m10acelx:
             try:
@@ -496,14 +398,21 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             except Exception:
                 None
 
-        # m10_forca_x
-        if m10forc:
+        # m10_forcae_x
+        if m10force:
             try:
-                self.m10_forca_x = self.Entries["2"]["sensors"]["33"]["time"]
-                self.m10_forca_y = self.Entries["2"]["sensors"]["33"]["dataR"]
+                self.m10_forcae_x = self.Entries["2"]["sensors"]["33"]["time"]
+                self.m10_forcae_y = self.Entries["2"]["sensors"]["33"]["dataR"]
             except Exception:
                 None
 
+        # m10_forcad_x
+        if m10forcd:
+            try:
+                self.m10_forcad_x = self.Entries["2"]["sensors"]["35"]["time"]
+                self.m10_forcad_y = self.Entries["2"]["sensors"]["35"]["dataR"]
+            except Exception:
+                None
 
         # M14
 
@@ -604,275 +513,84 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # G10
 
         # CLEAR lists
-        self.g10_volt1_x = []
-        self.g10_volt1_y = []
-        self.g10_volt2_x = []
-        self.g10_volt2_y = []
-        self.g10_curr1_x = []
-        self.g10_curr1_y = []
-        self.g10_curr2_x = []
-        self.g10_curr2_y = []
+        self.g10_tempb_x = []
+        self.g10_tempb_y = []
+        self.g10_tempt_x = []
+        self.g10_tempt_y = []
+        self.g10_tempa_x = []
+        self.g10_tempa_y = []
 
-        self.g10_hall1_x = []
-        self.g10_hall1_y = []
-        self.g10_hall2_x = []
-        self.g10_hall2_y = []
-        self.g10_pulse1_x = []
-        self.g10_pulse1_y = []
-        self.g10_pulse2_x = []
-        self.g10_pulse2_y = []
-
-        self.g10_tof_x = []
-        self.g10_tof_y = []
-        self.g10_EL1_x = []
-        self.g10_EL1_y = []
-        self.g10_EL2_x = []
-        self.g10_EL2_y = []
-
-        self.g10_pot1_x = []
-        self.g10_pot1_y = []
-        self.g10_pot2_x = []
-        self.g10_pot2_y = []
 
         # CLEAR lists
 
-        # g10_volt1
-        if g10_volt1:
+        # g10_tempb
+        if g10_tempb:
             try:
-                self.g10_volt1_x = self.Entries["4"]["sensors"]["41"]["time"]
-                self.g10_volt1_y = self.Entries["4"]["sensors"]["41"]["dataR"]
+                self.g10_tempb_x = self.Entries["4"]["sensors"]["17"]["time"]
+                self.g10_tempb_y = self.Entries["4"]["sensors"]["17"]["dataNR"]
             except Exception:
                 None
 
-        # g10_volt2
-        if g10_volt2:
+        # g10_tempt
+        if g10_tempt:
             try:
-                self.g10_volt2_x = self.Entries["4"]["sensors"]["42"]["time"]
-                self.g10_volt2_y = self.Entries["4"]["sensors"]["42"]["dataR"]
+                self.g10_tempt_x = self.Entries["4"]["sensors"]["18"]["time"]
+                self.g10_tempt_y = self.Entries["4"]["sensors"]["18"]["dataNR"]
             except Exception:
                 None
 
-        # g10_curr1
-        if g10_curr1:
+        # g10_tempa
+        if g10_tempa:
             try:
-                self.g10_curr1_x = self.Entries["4"]["sensors"]["51"]["time"]
-                self.g10_curr1_y = self.Entries["4"]["sensors"]["51"]["dataR"]
+                self.g10_tempa_x = self.Entries["4"]["sensors"]["19"]["time"]
+                self.g10_tempa_y = self.Entries["4"]["sensors"]["19"]["dataNR"]
             except Exception:
                 None
 
-        # g10_curr2
-        if g10_curr2:
-            try:
-                self.g10_curr2_x = self.Entries["4"]["sensors"]["52"]["time"]
-                self.g10_curr2_y = self.Entries["4"]["sensors"]["52"]["dataR"]
-            except Exception:
-                None
-
-        # g10_hall1
-        if g10_hall1:
-            try:
-                self.g10_hall1_x = self.Entries["4"]["sensors"]["31"]["time"]
-                self.g10_hall1_y = self.Entries["4"]["sensors"]["31"]["dataR"]
-            except Exception:
-                None
-
-        # g10_hall2
-        if g10_hall2:
-            try:
-                self.g10_hall2_x = self.Entries["4"]["sensors"]["32"]["time"]
-                self.g10_hall2_y = self.Entries["4"]["sensors"]["32"]["dataR"]
-            except Exception:
-                None
-
-        # g10_pulse1
-        if g10_pulse1:
-            try:
-                self.g10_pulse1_x = self.Entries["4"]["sensors"]["61"]["time"]
-                self.g10_pulse1_y = self.Entries["4"]["sensors"]["61"]["dataR"]
-            except Exception:
-                None
-
-        # g10_pulse2
-        if g10_pulse2:
-            try:
-                self.g10_pulse2_x = self.Entries["4"]["sensors"]["62"]["time"]
-                self.g10_pulse2_y = self.Entries["4"]["sensors"]["62"]["dataR"]
-            except Exception:
-                None
-
-        # g10_tof
-        if g10_tof:
-            try:
-                self.g10_tof_x = self.Entries["4"]["sensors"]["11"]["time"]
-                self.g10_tof_y = self.Entries["4"]["sensors"]["11"]["dataR"]
-            except Exception:
-                None
-
-        # g10_EL1
-        if g10_EL1:
-            try:
-                self.g10_EL1_x = self.Entries["4"]["sensors"]["21"]["time"]
-                self.g10_EL1_y = self.Entries["4"]["sensors"]["21"]["dataR"]
-            except Exception:
-                None
-
-        # g10_EL2
-        if g10_EL2:
-            try:
-                self.g10_EL2_x = self.Entries["4"]["sensors"]["22"]["time"]
-                self.g10_EL2_y = self.Entries["4"]["sensors"]["22"]["dataR"]
-            except Exception:
-                None
 
         # TODO add potencia
 
         # G14
 
         # CLEAR lists
-        self.g14_volt1_x = []
-        self.g14_volt1_y = []
-        self.g14_volt2_x = []
-        self.g14_volt2_y = []
-        self.g14_curr1_x = []
-        self.g14_curr1_y = []
-        self.g14_curr2_x = []
-        self.g14_curr2_y = []
-
-        self.g14_hall1_x = []
-        self.g14_hall1_y = []
-        self.g14_hall2_x = []
-        self.g14_hall2_y = []
-        self.g14_pulse1_x = []
-        self.g14_pulse1_y = []
-        self.g14_pulse2_x = []
-        self.g14_pulse2_y = []
-
-        self.g14_slhe_x = []
-        self.g14_slhe_y = []
-        self.g14_slhd_x = []
-        self.g14_slhd_y = []
         self.g14_slve_x = []
         self.g14_slve_y = []
         self.g14_slvd_x = []
         self.g14_slvd_y = []
 
-        self.g14_pot1_x = []
-        self.g14_pot1_y = []
-        self.g14_pot2_x = []
-        self.g14_pot2_y = []
-
         # CLEAR lists
-
-        # g14_volt1
-        if g14_volt1:
-            try:
-                self.g14_volt1_y = self.Entries["3"]["sensors"]["31"]["time"]
-                self.g14_volt1_x = self.Entries["3"]["sensors"]["31"]["dataR"]
-            except Exception:
-                None
-
-        # g14_volt2
-        if g14_volt2:
-            try:
-                self.g14_volt2_y = self.Entries["3"]["sensors"]["32"]["time"]
-                self.g14_volt2_x = self.Entries["3"]["sensors"]["32"]["dataR"]
-            except Exception:
-                None
-
-        # g14_curr1
-        if g14_curr1:
-            try:
-                self.g14_curr1_y = self.Entries["3"]["sensors"]["21"]["time"]
-                self.g14_curr1_x = self.Entries["3"]["sensors"]["21"]["dataR"]
-            except Exception:
-                None
-
-        # g14_curr2
-        if g14_curr2:
-            try:
-                self.g14_curr2_y = self.Entries["3"]["sensors"]["22"]["time"]
-                self.g14_curr2_x = self.Entries["3"]["sensors"]["22"]["dataR"]
-            except Exception:
-                None
-
-        # g14_hall1
-        if g14_hall1:
-            try:
-                self.g14_hall1_y = self.Entries["3"]["sensors"]["11"]["time"]
-                self.g14_hall1_x = self.Entries["3"]["sensors"]["11"]["dataR"]
-            except Exception:
-                None
-
-        # g14_hall2
-        if g14_hall2:
-            try:
-                self.g14_hall2_y = self.Entries["3"]["sensors"]["12"]["time"]
-                self.g14_hall2_x = self.Entries["3"]["sensors"]["12"]["dataR"]
-            except Exception:
-                None
-
-        # g14_pulse1
-        if g14_pulse1:
-            try:
-                self.g14_pulse1_y = self.Entries["3"]["sensors"]["71"]["time"]
-                self.g14_pulse1_x = self.Entries["3"]["sensors"]["71"]["dataR"]
-            except Exception:
-                None
-
-        # g14_pulse2
-        if g14_pulse2:
-            try:
-                self.g14_pulse2_y = self.Entries["3"]["sensors"]["72"]["time"]
-                self.g14_pulse2_x = self.Entries["3"]["sensors"]["72"]["dataR"]
-            except Exception:
-                None
-
-            # g14_slhe
-        if g14_slhe:
-            try:
-                self.g14_slhe_y = self.Entries["3"]["sensors"]["51"]["time"]
-                self.g14_slhe_x = self.Entries["3"]["sensors"]["51"]["dataR"]
-            except Exception:
-                None
-
-        # g14_slhd
-        if g14_slhd:
-            try:
-                self.g14_slhd_y = self.Entries["3"]["sensors"]["52"]["time"]
-                self.g14_slhd_x = self.Entries["3"]["sensors"]["52"]["dataR"]
-            except Exception:
-                None
 
         # g14_slve
         if g14_slve:
             try:
-                self.g14_slve_y = self.Entries["3"]["sensors"]["61"]["time"]
-                self.g14_slve_x = self.Entries["3"]["sensors"]["61"]["dataR"]
+                self.g14_slve_y = self.Entries["3"]["sensors"]["17"]["time"]
+                self.g14_slve_x = self.Entries["3"]["sensors"]["17"]["dataR"]
             except Exception:
                 None
 
         # g14_slvd
         if g14_slvd:
             try:
-                self.g14_slvd_y = self.Entries["3"]["sensors"]["62"]["time"]
-                self.g14_slvd_x = self.Entries["3"]["sensors"]["62"]["dataR"]
+                self.g14_slvd_y = self.Entries["3"]["sensors"]["19"]["time"]
+                self.g14_slvd_x = self.Entries["3"]["sensors"]["19"]["dataR"]
             except Exception:
                 None
 
-        if (m10acelx or m10acely or m10acelz or m10forc):
-            m10 = (m10acelx, m10acely, m10acelz, m10forc)
+
+        if (m10acelx or m10acely or m10acelz or m10force or m10forcd):
+            m10 = (m10acelx, m10acely, m10acelz, m10force, m10forcd)
         else:
             m10 = None
         if (m14_acelx or m14_acely or m14_acelz or m14_sl0 or m14_sl1 or m14_sl2 or m14_sl3 or m14_sl4 or m14_sl5):
             m14 = (m14_acelx, m14_acely, m14_acelz, m14_sl0, m14_sl1, m14_sl2, m14_sl3, m14_sl4, m14_sl5)
         else:
             m14 = None
-        if (g10_volt1 or g10_volt2 or g10_curr1 or g10_curr2 or g10_hall1 or g10_hall2 or g10_pulse1 or g10_pulse2 or g10_tof or g10_EL1 or g10_EL2):
-            g10 = (g10_volt1, g10_volt2, g10_curr1, g10_curr2, g10_hall1, g10_hall2, g10_pulse1, g10_pulse2, g10_tof, g10_EL1, g10_EL2)
+        if (g10_tempb or g10_tempt or g10_tempa):
+            g10 = (g10_tempb, g10_tempt, g10_tempa)
         else:
             g10 = None
-        if (g14_volt1 or g14_volt2 or g14_curr1 or g14_curr2 or g14_hall1 or g14_hall2 or g14_pulse1 or g14_pulse2 or g14_slhe or g14_slhd or g14_slve or g14_slvd):
-            g14 = (g14_volt1, g14_volt2, g14_curr1, g14_curr2, g14_hall1, g14_hall2, g14_pulse1, g14_pulse2, g14_slhe, g14_slhd, g14_slve, g14_slvd)
+        if (g14_slve or g14_slvd):
+            g14 = (g14_slve, g14_slvd)
         else:
             g14 = None
 
@@ -929,30 +647,37 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for item in self.m10_w1.listDataItems():
                 if item.name() == "Acel X":
                     self.m10_w1.removeItem(item)
-            acelx = self.m10_w1.plot(self.m10_acelx_x, self.m10_acelx_y, pen=(128, 0, 0))
+            acelx = self.m10_w1.plot(self.m10_acelx_x, self.m10_acelx_y, pen=(191, 0, 0), name="Acel X")
             self.m10_w1_l.removeItem('Acel X')
             self.m10_w1_l.addItem(acelx, 'Acel X')
         if (m10[1]):
             for item in self.m10_w1.listDataItems():
                 if item.name() == "Acel Y":
                     self.m10_w1.removeItem(item)
-            acely = self.m10_w1.plot(self.m10_acely_x, self.m10_acely_y, pen=(0, 128, 0))
+            acely = self.m10_w1.plot(self.m10_acely_x, self.m10_acely_y, pen=(0, 191, 0), name="Acel Y")
             self.m10_w1_l.removeItem('Acel Y')
             self.m10_w1_l.addItem(acely, 'Acel Y')
         if (m10[2]):
             for item in self.m10_w1.listDataItems():
                 if item.name() == "Acel Z":
                     self.m10_w1.removeItem(item)
-            acelz = self.m10_w1.plot(self.m10_acelz_x, self.m10_acelz_y, pen=(0, 0, 128))
+            acelz = self.m10_w1.plot(self.m10_acelz_x, self.m10_acelz_y, pen=(0, 0, 191), name="Acel Z")
             self.m10_w1_l.removeItem('Acel Z')
             self.m10_w1_l.addItem(acelz, 'Acel Z')
         if (m10[3]):
-            for item in self.m10_w1.listDataItems():
-                if item.name() == "Força":
+            for item in self.m10_w2.listDataItems():
+                if item.name() == "Força Esq":
                     self.m10_w2.removeItem(item)
-            forca = self.m10_w2.plot(self.m10_forca_x, self.m10_forca_y, pen=(128, 0, 0))
-            self.m10_w2_l.removeItem('Força')
-            self.m10_w2_l.addItem(forca, 'Força')
+            forcae = self.m10_w2.plot(self.m10_forcae_x, self.m10_forcae_y, pen=(191, 0, 0), name="Força Esq")
+            self.m10_w2_l.removeItem('Força Esq')
+            self.m10_w2_l.addItem(forcae, 'Força Esq')
+        if (m10[4]):
+            for item in self.m10_w2.listDataItems():
+                if item.name() == "Força Dir":
+                    self.m10_w2.removeItem(item)
+            forcad = self.m10_w2.plot(self.m10_forcad_x, self.m10_forcad_y, pen=(0, 191, 0), name="Força Dir")
+            self.m10_w2_l.removeItem('Força Dir')
+            self.m10_w2_l.addItem(forcad, 'Força Dir')
 
     def addPlotM14(self, m14):
         # ADD PLOT PROCEDURE
@@ -1026,191 +751,49 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def addPlotG10(self, g10):
         # ADD PLOT PROCEDURE
-        
-        #TODO add potencia
 
         if (g10[0]):
             for item in self.g10_w1.listDataItems():
-                if item.name() == "g10_volt1":
+                if item.name() == "Temperatura Ambiente":
                     self.g10_w1.removeItem(item)
-            g10_volt1 = self.g10_w1.plot(self.g10_volt1_x, self.g10_volt1_y, pen=(191, 0, 0), name="Volt 1")
-            self.g10_w1_l.removeItem('g10_volt1')
-            self.g10_w1_l.addItem(g10_volt1, 'g10_volt1')
+            g10_tempa = self.g10_w1.plot(self.g10_tempa_x, self.g10_tempa_y, pen=(191, 0, 0), name="Temperatura Ambiente")
+            self.g10_w1_l.removeItem('Temperatura Ambiente')
+            self.g10_w1_l.addItem(g10_tempa, 'Temperatura Ambiente')
         if (g10[1]):
             for item in self.g10_w1.listDataItems():
-                if item.name() == "g10_volt2":
+                if item.name() == "Temperatura Base":
                     self.g10_w1.removeItem(item)
-            g10_volt2 = self.g10_w1.plot(self.g10_volt2_x, self.g10_volt2_y, pen=(0, 191, 0), name="Volt 2")
-            self.g10_w1_l.removeItem('g10_volt2')
-            self.g10_w1_l.addItem(g10_volt2, 'g10_volt2')
+            g10_tempb = self.g10_w1.plot(self.g10_tempb_x, self.g10_tempb_y, pen=(0, 191, 0), name="Temperatura Base")
+            self.g10_w1_l.removeItem('Temperatura Base')
+            self.g10_w1_l.addItem(g10_tempb, 'Temperatura Base')
         if (g10[2]):
             for item in self.g10_w1.listDataItems():
-                if item.name() == "g10_curr1":
+                if item.name() == "Temperatura Tampa":
                     self.g10_w1.removeItem(item)
-            g10_curr1 = self.g10_w1.plot(self.g10_curr1_x, self.g10_curr1_y, pen=(0, 0, 191), name="Curr 1")
-            self.g10_w1_l.removeItem('g10_curr1')
-            self.g10_w1_l.addItem(g10_curr1, 'g10_curr1')
-        if (g10[3]):
-            for item in self.g10_w1.listDataItems():
-                if item.name() == "g10_curr2":
-                    self.g10_w1.removeItem(item)
-            g10_curr2 = self.g10_w1.plot(self.g10_curr2_x, self.g10_curr2_y, pen=(128, 128, 0), name="Curr 2")
-            self.g10_w1_l.removeItem('g10_curr2')
-            self.g10_w1_l.addItem(g10_curr2, 'g10_curr2')
-            
-            
-        if (g10[4]):
-            for item in self.g10_w2.listDataItems():
-                if item.name() == "g10_hall1":
-                    self.g10_w2.removeItem(item)
-            g10_hall1 = self.g10_w2.plot(self.g10_hall1_x, self.g10_hall1_y, pen=(191, 0, 0), name="Hall 1")
-            self.g10_w2_l.removeItem('g10_hall1')
-            self.g10_w2_l.addItem(g10_hall1, 'g10_hall1')
-        if (g10[5]):
-            for item in self.g10_w2.listDataItems():
-                if item.name() == "g10_hall2":
-                    self.g10_w2.removeItem(item)
-            g10_hall2 = self.g10_w2.plot(self.g10_hall2_x, self.g10_hall2_y, pen=(0, 191, 0), name="Hall 2")
-            self.g10_w2_l.removeItem('g10_hall2')
-            self.g10_w2_l.addItem(g10_hall2, 'g10_hall2')
-        if(g10[6]):
-            for item in self.g10_w2.listDataItems():
-                if item.name() == "g10_pulse1":
-                    self.g10_w2.removeItem(item)
-            g10_pulse1 = self.g10_w2.plot(self.g10_pulse1_x, self.g10_pulse1_y, pen=(0, 0, 191), name="Pulse 1")
-            self.g10_w2_l.removeItem('g10_pulse1')
-            self.g10_w2_l.addItem(g10_pulse1, 'g10_pulse1')
-        if (g10[7]):
-            for item in self.g10_w2.listDataItems():
-                if item.name() == "g10_pulse2":
-                    self.g10_w2.removeItem(item)
-            self.g10_w2.removeItem("g10_pulse2")
-            g10_pulse2 = self.g10_w2.plot(self.g10_pulse2_x, self.g10_pulse2_y, pen=(128, 128, 0), name="Pulse 2")
-            self.g10_w2_l.removeItem('g10_pulse2')
-            self.g10_w2_l.addItem(g10_pulse2, 'g10_pulse2')
-
-        if (g10[8]):
-            for item in self.g10_w3.listDataItems():
-                if item.name() == "g10_tof":
-                    self.g10_w3.removeItem(item)
-            self.g10_w3.removeItem("g10_tof")
-            g10_tof = self.g10_w3.plot(self.g10_tof_x, self.g10_tof_y, pen=(191, 0, 0), name="ToF")
-            self.g10_w3_l.removeItem('g10_tof')
-            self.g10_w3_l.addItem(g10_tof, 'g10_tof')
-        if (g10[9]):
-            for item in self.g10_w3.listDataItems():
-                if item.name() == "g10_EL1":
-                    self.g10_w3.removeItem(item)
-            self.g10_w3.removeItem("g10_EL1")
-            g10_EL1 = self.g10_w3.plot(self.g10_EL1_x, self.g10_EL1_y, pen=(0, 191, 0), name="EL 1")
-            self.g10_w3_l.removeItem('g10_EL1')
-            self.g10_w3_l.addItem(g10_EL1, 'g10_EL1')
-        if (g10[10]):
-            for item in self.g10_w3.listDataItems():
-                if item.name() == "g10_EL2":
-                    self.g10_w3.removeItem(item)
-            self.g10_w3.removeItem("g10_EL2")
-            g10_EL2 = self.g10_w3.plot(self.g10_EL2_x, self.g10_EL2_y, pen=(0, 0, 191), name="EL 2")
-            self.g10_w3_l.removeItem('g10_EL2')
-            self.g10_w3_l.addItem(g10_EL2, 'g10_EL2')
+            g10_tempt = self.g10_w1.plot(self.g10_tempt_x, self.g10_tempt_y, pen=(0, 0, 191), name="Temperatura Tampa")
+            self.g10_w1_l.removeItem('Temperatura Tampa')
+            self.g10_w1_l.addItem(g10_tempt, 'Temperatura Tampa')
 
     def addPlotG14(self, g14):
 
         # ADD PLOT PROCEDURE
 
-        # TODO add potencia
-
         if (g14[0]):
             for item in self.g14_w1.listDataItems():
-                if item.name() == "g14_volt1":
+                if item.name() == "SLV E":
                     self.g14_w1.removeItem(item)
-            g14_volt1 = self.g14_w1.plot(self.g14_volt1_x, self.g14_volt1_y, pen=(191, 0, 0), name="Volt 1")
-            self.g14_w1_l.removeItem('g14_volt1')
-            self.g14_w1_l.addItem(g14_volt1, 'g14_volt1')
+            self.g14_w1.removeItem("SLV E")
+            g14_slve = self.g14_w1.plot(self.g14_slve_x, self.g14_slve_y, pen=(191, 0, 0), name="SLV E")
+            self.g14_w1_l.removeItem('SLV E')
+            self.g14_w1_l.addItem(g14_slve, 'SLV E')
         if (g14[1]):
             for item in self.g14_w1.listDataItems():
-                if item.name() == "g14_volt2":
+                if item.name() == "SLV SLV D":
                     self.g14_w1.removeItem(item)
-            g14_volt2 = self.g14_w1.plot(self.g14_volt2_x, self.g14_volt2_y, pen=(0, 191, 0), name="Volt 2")
-            self.g14_w1_l.removeItem('g14_volt2')
-            self.g14_w1_l.addItem(g14_volt2, 'g14_volt2')
-        if (g14[2]):
-            for item in self.g14_w1.listDataItems():
-                if item.name() == "g14_curr1":
-                    self.g14_w1.removeItem(item)
-            g14_curr1 = self.g14_w1.plot(self.g14_curr1_x, self.g14_curr1_y, pen=(0, 0, 191), name="Curr 1")
-            self.g14_w1_l.removeItem('g14_curr1')
-            self.g14_w1_l.addItem(g14_curr1, 'g14_curr1')
-        if (g14[3]):
-            for item in self.g14_w1.listDataItems():
-                if item.name() == "g14_curr2":
-                    self.g14_w1.removeItem(item)
-            g14_curr2 = self.g14_w1.plot(self.g14_curr2_x, self.g14_curr2_y, pen=(128, 128, 0), name="Curr 2")
-            self.g14_w1_l.removeItem('g14_curr2')
-            self.g14_w1_l.addItem(g14_curr2, 'g14_curr2')
-
-        if (g14[4]):
-            for item in self.g14_w2.listDataItems():
-                if item.name() == "g14_hall1":
-                    self.g14_w2.removeItem(item)
-            g14_hall1 = self.g14_w2.plot(self.g14_hall1_x, self.g14_hall1_y, pen=(191, 0, 0), name="Hall 1")
-            self.g14_w2_l.removeItem('g14_hall1')
-            self.g14_w2_l.addItem(g14_hall1, 'g14_hall1')
-        if (g14[5]):
-            for item in self.g14_w2.listDataItems():
-                if item.name() == "g14_hall2":
-                    self.g14_w2.removeItem(item)
-            g14_hall2 = self.g14_w2.plot(self.g14_hall2_x, self.g14_hall2_y, pen=(0, 191, 0), name="Hall 2")
-            self.g14_w2_l.removeItem('g14_hall2')
-            self.g14_w2_l.addItem(g14_hall2, 'g14_hall2')
-        if (g14[6]):
-            for item in self.g14_w2.listDataItems():
-                if item.name() == "g14_pulse1":
-                    self.g14_w2.removeItem(item)
-            g14_pulse1 = self.g14_w2.plot(self.g14_pulse1_x, self.g14_pulse1_y, pen=(0, 0, 191), name="Pulse 1")
-            self.g14_w2_l.removeItem('g14_pulse1')
-            self.g14_w2_l.addItem(g14_pulse1, 'g14_pulse1')
-        if (g14[7]):
-            for item in self.g14_w2.listDataItems():
-                if item.name() == "g14_pulse2":
-                    self.g14_w2.removeItem(item)
-            self.g14_w2.removeItem("g14_pulse2")
-            g14_pulse2 = self.g14_w2.plot(self.g14_pulse2_x, self.g14_pulse2_y, pen=(128, 128, 0), name="Pulse 2")
-            self.g14_w2_l.removeItem('g14_pulse2')
-            self.g14_w2_l.addItem(g14_pulse2, 'g14_pulse2')
-
-        if (g14[8]):
-            for item in self.g14_w3.listDataItems():
-                if item.name() == "g14_slhe":
-                    self.g14_w3.removeItem(item)
-            self.g14_w3.removeItem("g14_slhe")
-            g14_slhe = self.g14_w3.plot(self.g14_slhe_x, self.g14_slhe_y, pen=(191, 0, 0), name="SLH E")
-            self.g14_w3_l.removeItem('g14_slhe')
-            self.g14_w3_l.addItem(g14_slhe, 'g14_slhe')
-        if (g14[9]):
-            for item in self.g14_w3.listDataItems():
-                if item.name() == "g14_slhd":
-                    self.g14_w3.removeItem(item)
-            self.g14_w3.removeItem("g14_slhd")
-            g14_slhd = self.g14_w3.plot(self.g14_slhd_x, self.g14_slhd_y, pen=(0, 191, 0), name="SLH D")
-            self.g14_w3_l.removeItem('g14_slhd')
-            self.g14_w3_l.addItem(g14_slhd, 'g14_slhd')
-        if (g14[10]):
-            for item in self.g14_w3.listDataItems():
-                if item.name() == "g14_slve":
-                    self.g14_w3.removeItem(item)
-            self.g14_w3.removeItem("g14_slve")
-            g14_slve = self.g14_w3.plot(self.g14_slve_x, self.g14_slve_y, pen=(0, 0, 191), name="SLV E")
-            self.g14_w3_l.removeItem('g14_slve')
-            self.g14_w3_l.addItem(g14_slve, 'g14_slve')
-        if (g14[11]):
-            for item in self.g14_w3.listDataItems():
-                if item.name() == "g14_slvd":
-                    self.g14_w3.removeItem(item)
-            self.g14_w3.removeItem("g14_slvd")
-            g14_slvd = self.g14_w3.plot(self.g14_slvd_x, self.g14_slvd_y, pen=(0, 0, 191), name="SLV D")
-            self.g14_w3_l.removeItem('g14_slvd')
-            self.g14_w3_l.addItem(g14_slvd, 'g14_slvd')
+            self.g14_w1.removeItem("SLV D")
+            g14_slvd = self.g14_w1.plot(self.g14_slvd_x, self.g14_slvd_y, pen=(0, 191, 0), name="SLV D")
+            self.g14_w1_l.removeItem('SLV D')
+            self.g14_w1_l.addItem(g14_slvd, 'SLV D')
 
     def clearGraph(self):
 
