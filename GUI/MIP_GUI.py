@@ -2,6 +2,7 @@
 
 import sys
 import os
+from pathlib import Path
 import threading
 import datetime
 from serialListener import *
@@ -30,7 +31,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
 
         #Configs
-        self.DataFolderPath = "C:/Users/deman/PycharmProjects/Monitoring_Interface_Pavnext/Data"
+        base_path = Path(__file__).parent
+        self.DataFolderPath = (base_path / "../Data").resolve()
         try:
             with open("config.cfg") as cfg:
                 self.cfgs = json.load(cfg)
