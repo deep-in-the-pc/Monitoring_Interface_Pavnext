@@ -7,7 +7,7 @@ import re
 #for storage
 import json
 import time
-
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
 
 
@@ -19,7 +19,7 @@ class serialThread (QThread):
 
     def __init__(self, threadID, name, c_lock):
         QThread.__init__(self)
-        self.closeEvent = threading.Event()
+        self._isRunning = True
         self.threadID = threadID
         self.name = name
         self.serialConnection = serial.Serial()
@@ -187,14 +187,14 @@ class serialThread (QThread):
                 self.serialConnection.open()
                 if(tries>5):
                     print("Failed to read header after",tries,"times.")
-                    self.closeEvent.set()
+                    self.self._isRunning = False
                     self.closedSignal.emit()
                     break
 
-            if not self.closeEvent.is_set():
+            if not self._isRunning:
                 print("Succeeded to read header after", tries, "times.")
 
-            while not self.closeEvent.is_set():
+            while not self._isRunning:
 
                 entry = self.getEntry()
 
@@ -228,6 +228,10 @@ class serialThread (QThread):
                     #print("inside serial", slave_pos, sensor_pos)
                     self.addRawEntrySignal.emit([slave_pos, sensor_pos])
                     #print("================ENTRY ADDED================")
+                QtWidgets.QApplication.processEvents()
 
         self.serialConnection.close()
         #print("serialListener", self.serialConnection.is_open)
+
+    def stop(self):
+        self._isRunning = False

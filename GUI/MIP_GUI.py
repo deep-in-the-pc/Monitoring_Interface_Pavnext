@@ -68,6 +68,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.c_lock = threading.Lock()
 
 
+        self._serialIsRunning = False
+        self._processIsRunning = False
 
         self.serialListenerThread = serialThread(1, "SerialListener", self.c_lock)
         self.processThread = processThread(2, "Process", self.d_lock, self.c_lock)
@@ -79,7 +81,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #self.serialConnectionParameters.append(115200)
         self.serialConnectionParameters.append(500000)
 
-        self.serialListenerThread.closeEvent.set()
         self.serialListenerThread.addRawEntrySignal[list].connect(self.addRawEntry)
         #Setup GraphicsLayoutWidget M10
 
@@ -188,15 +189,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def targetConnectionCB(self):
 
-        if not self.serialListenerThread.closeEvent.is_set():
+        if self._serialIsRunning:
             self.closeSerialConnetion()
             self.ui.targetComConnectButton.setText("Connect")
             self.addEntry("All")
         elif(self.serialCOM != None):
-            self.serialListenerThread.closeEvent.clear()
-            self.processThread.closeEvent.clear()
             if(self.establishConnection()):
                 # If connection is established set text as disconnect
+                self._serialIsRunning = True
                 self.ui.targetComConnectButton.setText("Disconnect")
 
     def onTargetComCBActivated(self, text):
@@ -219,8 +219,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def closeSerialConnetion(self):
         #Set event flag to close thread
-        self.serialListenerThread.closeEvent.set()
-        self.processThread.closeEvent.set()
+        self.serialListenerThread.stop()
+        self.processThread.stop()
         self.ui.connectionStatusLabel.setText("Connection Status: Offline")
 
     def newData(self, toBeUpdated):

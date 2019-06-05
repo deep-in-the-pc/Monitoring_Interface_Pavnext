@@ -4,7 +4,7 @@ import serial.tools.list_ports
 #for storage
 import json
 import time
-
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
 
 from gui.graphUtil import *
@@ -17,7 +17,7 @@ class processThread (QThread):
 
     def __init__(self, threadID, name, d_lock, c_lock):
         QThread.__init__(self)
-        self.closeEvent = threading.Event()
+        self._isRunning = True
         self.newRawEvent = threading.Event()
         self.threadID = threadID
         self.name = name
@@ -68,7 +68,7 @@ class processThread (QThread):
     def run(self):
         self.getRawJson()
         self.getDataJson()
-        while not self.closeEvent.is_set():
+        while self._isRunning:
             if (self.config == None):
                 self.getRawJson()
             if self.newRawEvent.is_set():
@@ -118,3 +118,6 @@ class processThread (QThread):
                     if(len(toBeUpdated[i])>0):
                         self.addEntrySignal.emit(toBeUpdated)
                         break
+            QtWidgets.QApplication.processEvents()
+    def stop(self):
+        self._isRunning = False
