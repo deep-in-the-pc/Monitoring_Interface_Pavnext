@@ -32,7 +32,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         #Configs
         base_path = Path(__file__).parent
-        self.DataFolderPath = (base_path / "../Data").resolve()
+        self.DataFolderPath = str((base_path / "../Data").resolve())
         try:
             with open("config.cfg") as cfg:
                 self.cfgs = json.load(cfg)
@@ -233,7 +233,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     self.total_toBeUpdated[key].append(val)
                 self.toBeUpdated_count = self.toBeUpdated_count + 1
         if self.toBeUpdated_count > 10 or self.ten_second_timer_flag and self.toBeUpdated_count > 0:
-            print("Displaying", self.total_toBeUpdated, self.toBeUpdated_count)
+            #print("Displaying", self.total_toBeUpdated, self.toBeUpdated_count)
             self.toBeUpdated_count = 0
             self.ten_second_timer_flag = False
             self.addEntry(self.total_toBeUpdated)
@@ -636,7 +636,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.addPlotG14(g14)
 
     def addRawEntry(self, data):
-        print("Got new raw data", data)
+        #print("Got new raw data", data)
         self.processThread.newRawEvent.set()
 
     def addPlotM10(self, m10):
