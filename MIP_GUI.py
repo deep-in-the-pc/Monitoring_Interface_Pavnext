@@ -1,5 +1,5 @@
 # -*- coding: latin-1 -*-
-
+from operator import itemgetter
 import queue
 import sys
 import os
@@ -152,6 +152,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.targetComConnectButton.setEnabled(True)
         self.ui.targetComConnectButton.setText("Connect")
         self.comlist_qtimer.start(self.comlist_qtimer_interval)
+        self.exportRawData()
 
     def serialThreadGotHeader(self, header):
         #Setup tabs
@@ -174,6 +175,33 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for n_slave in self.headerInfo:
                 self.modules_list.append(Module(n_slave, self.headerInfo[n_slave]))
 
+    def exportRawData(self):
+        e1 = [[], []]
+        e2 = [[], []]
+        d1 = [[], []]
+        d2 = [[], []]
+        z = [[], []]
+        for entry in self.rawEntries:
+            if entry[1] == 17:
+                e1[0] = e1[0] + entry[2]
+                e1[1] = e1[1] + entry[3]
+            if entry[1] == 33:
+                e2[0] = e2[0] + entry[2]
+                e2[1] = e2[1] + entry[3]
+            if entry[1] == 19:
+                d1[0] = d1[0] + entry[2]
+                d1[1] = d1[1] + entry[3]
+            if entry[1] == 35:
+                d2[0] = d2[0] + entry[2]
+                d2[1] = d2[1] + entry[3]
+            if entry[1] == 51:
+                z[0] = z[0] + entry[2]
+                z[1] = z[1] + entry[3]
+
+        with open('rawdata.txt', 'w') as file:
+            for i in range(len(e1[1])):
+                line = str(e1[0][i]) + " " + str(e1[1][i]) + " " + str(e2[0][i]) + " " + str(e2[1][i]) + " " + str(d1[0][i]) + " " + str(d1[1][i]) + " " + str(d2[0][i]) + " " + str(d2[1][i]) + " " + str(z[0][i]) + " " + str(z[1][i]) + "\n"
+                file.write(line)
 
 
 def main():
