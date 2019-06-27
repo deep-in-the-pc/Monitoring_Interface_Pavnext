@@ -7,7 +7,7 @@ import time
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
 
-from gui.graphUtil import *
+#from gui.graphUtil import *
 
 
 class processThread (QThread):

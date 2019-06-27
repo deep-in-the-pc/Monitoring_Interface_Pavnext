@@ -18,7 +18,7 @@ try:
 except ImportError:
     QString = str
 from PyQt5.QtCore import QThread, pyqtSignal
-from gui.MI_GUI_04 import Ui_MainWindow
+from GUI.MI_GUI_04 import Ui_MainWindow
 from pyqtgraph import *
 
 class Sensor():
@@ -166,6 +166,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.rawEntries.append(data)
         #print("rawEntries size:", sys.getsizeof(self.rawEntries))
         #Display/process data
+        print(data)
 
     def setupGraphTabs(self):
         self.modules_list = []

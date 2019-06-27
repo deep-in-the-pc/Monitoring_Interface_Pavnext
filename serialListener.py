@@ -83,7 +83,7 @@ class serialThread (QThread):
         self.serialConnection.bytesize = serial.EIGHTBITS
         self.serialConnection.parity = serial.PARITY_NONE
         self.serialConnection.stopbits = serial.STOPBITS_ONE
-        self.serialConnection.baudrate = 500000
+        self.serialConnection.baudrate = 1000000
 
     def getHeader(self):
         packet = bytearray()
