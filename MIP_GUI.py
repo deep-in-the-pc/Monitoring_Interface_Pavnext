@@ -133,6 +133,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.closeSerialThread()
         else:
             self.comlist_qtimer.stop()
+            self.rawEntries = []
             self.startSerialThread()
 
     def startSerialThread(self):
@@ -176,31 +177,42 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self.modules_list.append(Module(n_slave, self.headerInfo[n_slave]))
 
     def exportRawData(self):
-        e1 = [[], []]
-        e2 = [[], []]
-        d1 = [[], []]
-        d2 = [[], []]
-        z = [[], []]
-        for entry in self.rawEntries:
-            if entry[1] == 17:
-                e1[0] = e1[0] + entry[2]
-                e1[1] = e1[1] + entry[3]
-            if entry[1] == 33:
-                e2[0] = e2[0] + entry[2]
-                e2[1] = e2[1] + entry[3]
-            if entry[1] == 19:
-                d1[0] = d1[0] + entry[2]
-                d1[1] = d1[1] + entry[3]
-            if entry[1] == 35:
-                d2[0] = d2[0] + entry[2]
-                d2[1] = d2[1] + entry[3]
-            if entry[1] == 51:
-                z[0] = z[0] + entry[2]
-                z[1] = z[1] + entry[3]
+        container = {}
 
+        for entry in self.rawEntries:
+            if entry[1] not in container:
+                container[entry[1]] = [[], []]
+            container[entry[1]][0] = container[entry[1]][0] + entry[2]
+            container[entry[1]][1] = container[entry[1]][1] + entry[3]
+
+        maxlen = 0
+        for e in container:
+            if max(len(container[e][0]), len(container[e][1])) > maxlen:
+                maxlen = max(len(container[e][0]), len(container[e][1]))
+        for e in container:
+            if e != 50 and e != 97:
+                for i in range(len(container[e][0])):
+                    container[e][0][i] = round((container[e][0][i]*5)/1024,3)
+                    container[e][1][i] = float(container[e][1][i])
+            else:
+                for i in range(len(container[e][0])):
+                    container[e][0][i] = float(container[e][0][i])
+                    container[e][1][i] = float(container[e][1][i])
         with open('rawdata.txt', 'w') as file:
-            for i in range(len(e1[1])):
-                line = str(e1[0][i]) + " " + str(e1[1][i]) + " " + str(e2[0][i]) + " " + str(e2[1][i]) + " " + str(d1[0][i]) + " " + str(d1[1][i]) + " " + str(d2[0][i]) + " " + str(d2[1][i]) + " " + str(z[0][i]) + " " + str(z[1][i]) + "\n"
+            print(maxlen)
+            header = ""
+            for key in container.keys():
+                header = header + "S" + str(key) + " t "
+            header = header + "\n"
+            file.write(header)
+            for i in range(maxlen):
+                line = ""
+                for e in container:
+                    try:
+                        line = line + str(container[e][0][i]) + " " + str(container[e][1][i]) + " "
+                    except Exception:
+                        line = line + "- - "
+                line = line[:-1] + "\n"
                 file.write(line)
 
 
