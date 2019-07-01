@@ -181,32 +181,31 @@ class serialThread (QThread):
                 self.serialConnection.open()
                 if(tries>5):
                     print("Failed to read header after",tries,"times.")
-                    self.self._isRunning = False
-                    self.closedSignal.emit()
+                    self._isRunning = False
                     break
 
             if self._isRunning:
                 self.gotHeaderSignal.emit(self.config)
                 self.processPool = multiprocessing.Pool(os.cpu_count())
                 print("Succeeded to read header after", tries, "times.")
-            while self._isRunning:
-                entry = 1
-                availablebytes = self.serialConnection.in_waiting
-                if availablebytes:
-                    newdata = self.serialConnection.read(availablebytes)
-                    #print(newdata)
-                    self._serialincdata = self._serialincdata + newdata
-                endpos = self.reEnd.search(self._serialincdata)
-                if endpos != None:
-                    datapos = self.reData.search(self._serialincdata)
-                    inputdata = [self._serialincdata[datapos.start():endpos.end()]]
-                    self._serialincdata = self._serialincdata[endpos.end():]
-                    self.processPool.apply_async(processWorker, args=inputdata, callback=self.workerFinishedCB)
-                QtWidgets.QApplication.processEvents()
-
+                while self._isRunning:
+                    entry = 1
+                    availablebytes = self.serialConnection.in_waiting
+                    if availablebytes:
+                        newdata = self.serialConnection.read(availablebytes)
+                        #print(newdata)
+                        self._serialincdata = self._serialincdata + newdata
+                    endpos = self.reEnd.search(self._serialincdata)
+                    if endpos != None:
+                        datapos = self.reData.search(self._serialincdata)
+                        inputdata = [self._serialincdata[datapos.start():endpos.end()]]
+                        self._serialincdata = self._serialincdata[endpos.end():]
+                        self.processPool.apply_async(processWorker, args=inputdata, callback=self.workerFinishedCB)
+                    QtWidgets.QApplication.processEvents()
+                self.processPool.close()
+                self.processPool.join()
             self.serialConnection.close()
-            self.processPool.close()
-            self.processPool.join()
+
         self.closedSignal.emit()
 
 

@@ -10,6 +10,7 @@ from serialListener import *
 from dataProcess import *
 from util import *
 from math import ceil
+import math
 # for UI
 from PyQt5 import QtWidgets, QtGui, QtCore
 
@@ -18,7 +19,7 @@ try:
 except ImportError:
     QString = str
 from PyQt5.QtCore import QThread, pyqtSignal
-from GUI.MI_GUI_04 import Ui_MainWindow
+from gui.MI_GUI_04 import Ui_MainWindow
 from pyqtgraph import *
 
 class Sensor():
@@ -28,6 +29,17 @@ class Sensor():
         self.status = parameters['status']
         self.restval = parameters['restval']
         self.position = parameters['position']
+        self.setup()
+
+    def setup(self):
+        lookup = {0: "Deslocamento linear vertical", 1: "Deslocamento linear horizontal", 2: "Acelerómetro  Eixo X", 3: "Acelerómetro Eixo Y", 4: "Acelerómetro Eixo Z", 5: "Extensômetro", 6: "Encoder Linear", 7: "temperatura", 8: "humidade", 9: "luminosidade", 10: "tensão", 11: "corrente", 12: "rotações pulsos", 13: "rotações hall", 14: "time of flight"}
+        self.type = lookup[self.function]
+
+    def getType(self):
+        return self.type
+
+    def getPosition(self):
+        return self.position
 
     def __repr__(self):
         return f"Sensor: {self.sensor}\n\t\t\tFunction: {self.function}\n\t\t\tStatus: {self.status}\n\t\t\tRestval: {self.restval}\n\t\t\tPosition: {self.position}"
@@ -49,6 +61,23 @@ class Module():
     def setupSensors(self, sensors):
         for sensor in sensors:
             self.sensors_list.append(Sensor(sensor, sensors[sensor]))
+
+    def getUnit(self):
+
+        lookup = {0:"M100", 1:"G100", 2:"M140", 3:"G140"}
+
+        return lookup[self.unit]
+
+    def getSensors_GFX(self):
+        sensors = {}
+        for sensor in self.sensors_list:
+            type = sensor.getType()
+            if type not in sensors:
+                sensors[type] = []
+            sensors[type].append(sensor.getPosition())
+        return sensors
+
+
 
     def __repr__(self):
         fstr = f"Module: {self.module}\n\tAddress: {self.address}\n\tMicroprocessor: {self.microprocessor}\n\tStatus: {self.status}\n\tPosition {self.position}\n\tUnit: {self.unit}\n\tSensors:"
@@ -95,6 +124,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def setupCallbacks(self):
         self.ui.targetComConnectButton.clicked.connect(self.establishConnection)
+        self.ui.targetComCB.currentIndexChanged.connect(self.changeCOMCB)
 
     def setupTimers(self):
         self.comlist_qtimer = QtCore.QTimer(self)
@@ -127,6 +157,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.comlist_qtimer.stop()
             self.comlist_qtimer.start(self.comlist_qtimer_interval)
 
+    def changeCOMCB(self):
+        self.serialCOM = self.ui.targetComCB.currentText()
 
     def establishConnection(self):
         if self._isConnected:
@@ -153,7 +185,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.targetComConnectButton.setEnabled(True)
         self.ui.targetComConnectButton.setText("Connect")
         self.comlist_qtimer.start(self.comlist_qtimer_interval)
-        self.exportRawData()
+        #self.exportRawData()
 
     def serialThreadGotHeader(self, header):
         #Setup tabs
@@ -175,6 +207,27 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         if not self.headerInfo == None:
             for n_slave in self.headerInfo:
                 self.modules_list.append(Module(n_slave, self.headerInfo[n_slave]))
+        print(self.modules_list)
+        for module in self.modules_list:
+            tab = QtGui.QWidget()
+            self.ui.slaveTabWidget.addTab(tab, module.getUnit())
+            typetablayout = QtGui.QGridLayout()
+            gb_h_layout = QtWidgets.QHBoxLayout()
+            sensor_list = module.getSensors_GFX()
+            for type in sensor_list:
+                cb_groupbox = QtWidgets.QGroupBox(type)
+                cb_h_layout = QtWidgets.QHBoxLayout()
+                for sensor in sensor_list[type]:
+                    checkbox = QtWidgets.QCheckBox(str(hex(sensor)))
+                    cb_h_layout.addWidget(checkbox)
+                cb_groupbox.setLayout(cb_h_layout)
+                gb_h_layout.addWidget(cb_groupbox)
+            typetablayout.addLayout(gb_h_layout, 1, 0, -1, 0)
+
+            graphicsview = GraphicsLayoutWidget(self)
+            #typetablayout.addWidget(graphicsview, 0, 0, -1, 0)
+            tab.setLayout(typetablayout)
+
 
     def exportRawData(self):
         container = {}
@@ -198,6 +251,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 for i in range(len(container[e][0])):
                     container[e][0][i] = float(container[e][0][i])
                     container[e][1][i] = float(container[e][1][i])
+
+
         with open('rawdata.txt', 'w') as file:
             print(maxlen)
             header = ""
