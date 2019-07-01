@@ -4,6 +4,7 @@ import multiprocessing
 import serial.tools.list_ports
 import serial
 import re
+from math import ceil
 #for storage
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -66,6 +67,11 @@ class serialThread (QThread):
         self.reData = re.compile(b"DATA")
         self.reEnd = re.compile(b"END")
         self.reTime = re.compile(b"TIME")
+
+        if os.cpu_count()<=8:
+            self.corecount = ceil(os.cpu_count()/2)
+        else:
+            self.corecount = 4
 
 
     def setParameters(self, parameters):
@@ -186,7 +192,8 @@ class serialThread (QThread):
 
             if self._isRunning:
                 self.gotHeaderSignal.emit(self.config)
-                self.processPool = multiprocessing.Pool(os.cpu_count())
+
+                self.processPool = multiprocessing.Pool(self.corecount)
                 print("Succeeded to read header after", tries, "times.")
                 while self._isRunning:
                     entry = 1
