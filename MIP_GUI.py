@@ -31,6 +31,9 @@ class Sensor():
         self.position = parameters['position']
         self.setup()
 
+
+
+
     def setup(self):
         lookup = {0: "Deslocamento linear vertical", 1: "Deslocamento linear horizontal", 2: "Acelerómetro  Eixo X", 3: "Acelerómetro Eixo Y", 4: "Acelerómetro Eixo Z", 5: "Extensômetro", 6: "Encoder Linear", 7: "temperatura", 8: "humidade", 9: "luminosidade", 10: "tensão", 11: "corrente", 12: "rotações pulsos", 13: "rotações hall", 14: "time of flight"}
         self.type = lookup[self.function]
@@ -58,6 +61,7 @@ class Module():
         self.sensors_list = []
         self.setupSensors(parameters['sensors'])
 
+
     def setupSensors(self, sensors):
         for sensor in sensors:
             self.sensors_list.append(Sensor(sensor, sensors[sensor]))
@@ -77,8 +81,19 @@ class Module():
             sensors[type].append(sensor.getPosition())
         return sensors
 
+    def sensorToType(self, sensor):
 
+        for s in self.sensors_list:
+            if s.id == sensor:
+                return s.getType()
 
+        return None
+
+    def typeToUnits(self, type):
+
+        lookup = {"Deslocamento linear vertical" : "mm", "Deslocamento linear horizontal" : "mm", "Acelerómetro  Eixo X" : "g", "Acelerómetro Eixo Y" : "g", "Acelerómetro Eixo Z" : "g", "Extensômetro" : "N", "Encoder Linear" : "mm", "temperatura" : "ºC", "humidade" : "HA", "luminosidade" : "lx", "tensão" : "V", "corrente" : "A", "rotações pulsos" : "RPM", "rotações hall" : "RPM", "time of flight" : "mm"}
+
+        return lookup[type]
     def __repr__(self):
         fstr = f"Module: {self.module}\n\tAddress: {self.address}\n\tMicroprocessor: {self.microprocessor}\n\tStatus: {self.status}\n\tPosition {self.position}\n\tUnit: {self.unit}\n\tSensors:"
         for sensor in self.sensors_list:
@@ -106,6 +121,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.setupCallbacks()
         self.setupTimers()
 
+        # LOCKED UNTIL IMPLEMENTED
+
+        self.ui.savePushButton.setEnabled(False)
+        self.ui.openPushButton.setEnabled(False)
+
+
+
+
     def setupVariables(self):
         #DATA
         self.headerInfo = None
@@ -116,11 +139,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.serialListenerThread.addRawEntrySignal[list].connect(self.addRawEntry)
         self.serialListenerThread.closedSignal.connect(self.serialThreadClosed)
         self.serialListenerThread.gotHeaderSignal[dict].connect(self.serialThreadGotHeader)
+        self.tabContainer = {}
+        self.graphsContainer = {}
 
         self._isConnected = False
 
         #Process thread
         self.processQueue = queue.Queue()
+
 
     def setupCallbacks(self):
         self.ui.targetComConnectButton.clicked.connect(self.establishConnection)
@@ -131,6 +157,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.comlist_qtimer.timeout.connect(self.getCOMList)
         self.comlist_qtimer_interval = round(1000/10) #10hz
         self.comlist_qtimer.start(self.comlist_qtimer_interval)
+        self.guiupdate_qtimer = QtCore.QTimer(self)
+        self.guiupdate_qtimer.timeout.connect(self.updatePlots)
+        self.guiupdate_qtimer_interval = round(1000/60) #60hz
 
     def getCOMList(self):
 
@@ -185,7 +214,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.targetComConnectButton.setEnabled(True)
         self.ui.targetComConnectButton.setText("Connect")
         self.comlist_qtimer.start(self.comlist_qtimer_interval)
-        #self.exportRawData()
+        self.exportRawData()
+        #Stop Plot update timer
+        #self.guiupdate_qtimer.stop()
 
     def serialThreadGotHeader(self, header):
         #Setup tabs
@@ -195,38 +226,140 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._isConnected = True
         self.ui.targetComConnectButton.setEnabled(True)
         self.ui.targetComConnectButton.setText("Disconnect")
+        #Start Plot update timer
+        self.guiupdate_qtimer.start()
 
     def addRawEntry(self, data):
+        module = data[0]
+        sensor = data[1]
+        rawData = np.array(data[2])
+        time = np.array(data[3])
         self.rawEntries.append(data)
-        #print("rawEntries size:", sys.getsizeof(self.rawEntries))
-        #Display/process data
-        print(data)
+
+        for mod in self.modules_list:
+            if mod.module == module:
+                unit = mod.getUnit()
+                for sen in mod.sensors_list:
+                    if sen.sensor == sensor:
+                        type = sen.getType()
+        for idx, inst in enumerate(time):
+
+            self.graphsContainer[unit][type]['sensors'][sensor]['time'][inst] = inst
+            self.graphsContainer[unit][type]['sensors'][sensor]['data'][inst] = rawData[idx]
+
+        self.graphsContainer[unit][type]['sensors'][sensor]['pos'] = inst
 
     def setupGraphTabs(self):
         self.modules_list = []
         if not self.headerInfo == None:
             for n_slave in self.headerInfo:
                 self.modules_list.append(Module(n_slave, self.headerInfo[n_slave]))
-        print(self.modules_list)
         for module in self.modules_list:
-            tab = QtGui.QWidget()
-            self.ui.slaveTabWidget.addTab(tab, module.getUnit())
-            typetablayout = QtGui.QGridLayout()
-            gb_h_layout = QtWidgets.QHBoxLayout()
+
+            #Setup Tab
+
+            print(module)
+            unit = module.getUnit()
+            self.tabContainer[unit] = {}
+            self.tabContainer[unit]['widget'] = QtGui.QWidget()
+            index = self.ui.slaveTabWidget.addTab(self.tabContainer[unit]['widget'], unit)
+            self.ui.slaveTabWidget.setCurrentIndex(index)
+            self.tabContainer[unit]['tablayout'] = QtGui.QGridLayout()
+            self.tabContainer[unit]['groupboxlayout'] = QtWidgets.QHBoxLayout()
             sensor_list = module.getSensors_GFX()
             for type in sensor_list:
                 cb_groupbox = QtWidgets.QGroupBox(type)
                 cb_h_layout = QtWidgets.QHBoxLayout()
                 for sensor in sensor_list[type]:
-                    checkbox = QtWidgets.QCheckBox(str(hex(sensor)))
-                    cb_h_layout.addWidget(checkbox)
+                    self.tabContainer[unit][sensor] = QtWidgets.QCheckBox(str(hex(sensor)))
+                    self.tabContainer[unit][sensor].setCheckState(2)
+                    self.tabContainer[unit][sensor].stateChanged[int].connect(self.moduleTypeSensorCheckboxCB)
+                    cb_h_layout.addWidget(self.tabContainer[unit][sensor])
                 cb_groupbox.setLayout(cb_h_layout)
-                gb_h_layout.addWidget(cb_groupbox)
-            typetablayout.addLayout(gb_h_layout, 1, 0, -1, 0)
+                self.tabContainer[unit]['groupboxlayout'].addWidget(cb_groupbox)
 
-            graphicsview = GraphicsLayoutWidget(self)
-            #typetablayout.addWidget(graphicsview, 0, 0, -1, 0)
-            tab.setLayout(typetablayout)
+            self.tabContainer[unit]['tablayout'].addLayout(self.tabContainer[unit]['groupboxlayout'], 9, 0, 1, -1)
+
+            self.tabContainer[unit]['graphicsview'] = GraphicsLayoutWidget(self)
+
+            self.tabContainer[unit]['tablayout'].addWidget(self.tabContainer[unit]['graphicsview'], 0, 0, 9, -1)
+
+            self.tabContainer[unit]['widget'].setLayout(self.tabContainer[unit]['tablayout'])
+
+            #Setup Plots
+            self.graphsContainer[unit] = {}
+            for type in sensor_list:
+                self.graphsContainer[unit][type] = {}
+                self.graphsContainer[unit][type]['sensors'] = {}
+                self.graphsContainer[unit][type]['units'] = module.typeToUnits(type)
+                for sensor in sensor_list[type]:
+
+                    self.graphsContainer[unit][type]['sensors'][sensor] = {}
+                    self.graphsContainer[unit][type]['sensors'][sensor]['display'] = True
+                    self.graphsContainer[unit][type]['sensors'][sensor]['time'] = np.empty(60000, dtype=np.single)
+                    self.graphsContainer[unit][type]['sensors'][sensor]['time'].fill(np.nan)
+                    self.graphsContainer[unit][type]['sensors'][sensor]['data'] = np.empty(60000, dtype=np.single)
+                    self.graphsContainer[unit][type]['sensors'][sensor]['data'].fill(np.nan)
+                    self.graphsContainer[unit][type]['sensors'][sensor]['pos'] = 0
+                    self.graphsContainer[unit][type]['sensors'][sensor]['plot'] = None
+
+            self.graphViewSetup(unit)
+
+    def moduleTypeSensorCheckboxCB(self, state):
+        ch = self.sender()
+        gb = ch.parent()
+        tab = gb.parent().parent().parent()
+        unit = tab.tabText(tab.currentIndex())
+        type = ch.parent().title()
+        sensor = int(ch.text(), 16)
+        if state == 2:
+
+            self.graphsContainer[unit][type]['sensors'][sensor]['display'] = True
+
+        if state == 0:
+            self.graphsContainer[unit][type]['sensors'][sensor]['display'] = False
+
+        self.graphViewSetup(unit)
+        print(state, ch.text(), ch.parent().title(), tab.tabText(tab.currentIndex()))
+
+    def graphViewSetup(self, unit):
+        self.tabContainer[unit]['graphicsview'].clear()
+        row = 0
+        for type in self.graphsContainer[unit]:
+            for sensor in self.graphsContainer[unit][type]['sensors']:
+                plot = False
+                if self.graphsContainer[unit][type]['sensors'][sensor]['display'] == True:
+                    plot = True
+                    break
+            for sensor in self.graphsContainer[unit][type]['sensors']:
+                self.graphsContainer[unit][type]['sensors'][sensor]['plot'] = None
+            if plot:
+                self.graphsContainer[unit][type]['plot'] = PlotItem(title=type, labels={'left': self.modules_list[0].typeToUnits(type) + " / unit", 'bottom': "ms / unit"})
+                self.graphsContainer[unit][type]['plot'].addLegend()
+                self.tabContainer[unit]['graphicsview'].addItem(self.graphsContainer[unit][type]['plot'], row=row, col=0, rowspan=1, colspan=1)
+                row = row + 1
+            else:
+                self.graphsContainer[unit][type]['plot'] = None
+
+
+
+    def updatePlots(self):
+        #Run on timer when connected
+
+        for unit in self.graphsContainer:
+            for type in self.graphsContainer[unit]:
+                color = 0
+                for sensor in self.graphsContainer[unit][type]['sensors']:
+
+                    QtWidgets.QApplication.processEvents()
+                    if self.graphsContainer[unit][type]['sensors'][sensor]['display'] == True:
+                        pos = self.graphsContainer[unit][type]['sensors'][sensor]['pos']
+                        if self.graphsContainer[unit][type]['sensors'][sensor]['plot'] == None:
+                            self.graphsContainer[unit][type]['sensors'][sensor]['plot'] = self.graphsContainer[unit][type]['plot'].plot(name=str(sensor), pen=intColor(color, maxValue=255, minValue=128))
+                        self.graphsContainer[unit][type]['sensors'][sensor]['plot'].setData(self.graphsContainer[unit][type]['sensors'][sensor]['time'][:pos], self.graphsContainer[unit][type]['sensors'][sensor]['data'][:pos])
+                        color = color + 1
+                    else:
+                        continue
 
 
     def exportRawData(self):
@@ -242,18 +375,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         for e in container:
             if max(len(container[e][0]), len(container[e][1])) > maxlen:
                 maxlen = max(len(container[e][0]), len(container[e][1]))
-        for e in container:
-            if e != 50 and e != 97:
-                for i in range(len(container[e][0])):
-                    container[e][0][i] = round((container[e][0][i]*5)/1024,3)
-                    container[e][1][i] = float(container[e][1][i])
-            else:
-                for i in range(len(container[e][0])):
-                    container[e][0][i] = float(container[e][0][i])
-                    container[e][1][i] = float(container[e][1][i])
+            for i in range(len(container[e][0])):
+                container[e][0][i] = container[e][0][i]
+                container[e][1][i] = container[e][1][i]
 
-
-        with open('rawdata.txt', 'w') as file:
+        name = self.ui.veiculoLineEdit.text() + "_" + self.ui.velocidadeLineEdit.text() + "_" + self.ui.superficieLineEdit.text() + "_" + self.ui.notaLineEdit.text() + ".txt"
+        with open(name, 'w') as file:
             print(maxlen)
             header = ""
             for key in container.keys():
