@@ -190,7 +190,7 @@ class serialThread (QThread):
 
             if self._isRunning:
                 self.gotHeaderSignal.emit(self.config)
-
+                self._serialincdata = bytes()
                 self.processPool = multiprocessing.Pool(self.corecount)
                 print("Succeeded to read header after", tries, "times.")
                 while self._isRunning:
@@ -201,16 +201,27 @@ class serialThread (QThread):
                         #print(newdata)
                         self._serialincdata = self._serialincdata + newdata
                     endpos = self.reEnd.search(self._serialincdata)
+
                     if endpos != None:
                         datapos = self.reData.search(self._serialincdata)
                         inputdata = [self._serialincdata[datapos.start():endpos.end()]]
                         self._serialincdata = self._serialincdata[endpos.end():]
                         self.processPool.apply_async(processWorker, args=inputdata, callback=self.workerFinishedCB)
                     QtWidgets.QApplication.processEvents()
-                self.processPool.close()
-                self.processPool.join()
+
             self.serialConnection.close()
 
+            while(1):#Still processing data
+                endpos = self.reEnd.search(self._serialincdata)
+                if endpos != None:
+                    datapos = self.reData.search(self._serialincdata)
+                    inputdata = [self._serialincdata[datapos.start():endpos.end()]]
+                    self._serialincdata = self._serialincdata[endpos.end():]
+                    self.processPool.apply_async(processWorker, args=inputdata, callback=self.workerFinishedCB)
+                else:
+                    break
+            self.processPool.close()
+            self.processPool.join()
         self.closedSignal.emit()
 
 
