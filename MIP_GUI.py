@@ -335,6 +335,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self.graphsContainer[unit][type]['sensors'][sensor]['plot'] = None
             if plot:
                 self.graphsContainer[unit][type]['plot'] = PlotItem(title=type, labels={'left': self.modules_list[0].typeToUnits(type) + " / unit", 'bottom': "ms / unit"})
+                self.graphsContainer[unit][type]['plot'].showGrid(x=True, y=True, alpha=0.8)
                 self.graphsContainer[unit][type]['plot'].addLegend()
                 self.tabContainer[unit]['graphicsview'].addItem(self.graphsContainer[unit][type]['plot'], row=row, col=0, rowspan=1, colspan=1)
                 row = row + 1
