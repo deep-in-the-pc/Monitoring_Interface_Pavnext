@@ -245,10 +245,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         for idx, inst in enumerate(time):
 
             self.graphsContainer[unit][type]['sensors'][sensor]['time'][inst] = inst
-            lookup = {0: "Deslocamento linear vertical", 1: "Deslocamento linear horizontal", 2: "Acelerómetro  Eixo X",
-                      3: "Acelerómetro Eixo Y", 4: "Acelerómetro Eixo Z", 5: "Extensômetro", 6: "Encoder Linear",
-                      7: "temperatura", 8: "humidade", 9: "luminosidade", 10: "tensão", 11: "corrente",
-                      12: "rotações pulsos", 13: "rotações hall", 14: "time of flight"}
 
             if type == "Deslocamento linear vertical" or type == "Deslocamento linear horizontal":
                 self.graphsContainer[unit][type]['sensors'][sensor]['data'][inst] = (rawData[idx]/1024.0)*30.0
