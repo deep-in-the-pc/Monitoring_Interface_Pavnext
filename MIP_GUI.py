@@ -22,6 +22,19 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from gui.MI_GUI_04 import Ui_MainWindow
 from pyqtgraph import *
 
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (np.int_, np.intc, np.intp, np.int8,
+            np.int16, np.int32, np.int64, np.uint8,
+            np.uint16, np.uint32, np.uint64)):
+            return int(obj)
+        elif isinstance(obj, (np.float_, np.float16, np.float32,
+            np.float64)):
+            return float(obj)
+        elif isinstance(obj,(np.ndarray,)):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
 class Sensor():
     def __init__(self, id, parameters):
         self.sensor = id
@@ -107,12 +120,15 @@ class Module():
         return fstr
 
 class ApplicationWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, debugging):
         super(ApplicationWindow, self).__init__()
 
         # PyQtGraph config
         setConfigOption('background', 'w')
         setConfigOption('foreground', 'k')
+
+        #Debugging
+        self.isDebugging = debugging
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -121,21 +137,25 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.setupCallbacks()
         self.setupTimers()
 
-        # LOCKED UNTIL IMPLEMENTED
-
-        self.ui.savePushButton.setEnabled(False)
-        self.ui.openPushButton.setEnabled(False)
-
-
-
-
     def setupVariables(self):
+
+        #UI
+        self.openFileFlag = False
+        self.currentDataSaved = True
+        self.showSaveWarning = True
+        self.showOpenWarnign = True
+        self.xmin = 0
+        self.xmax = 60000
+
         #DATA
+        base_path = Path(__file__).parent
+        self.DataFolderPath = str((base_path / "Data").resolve())
         self.headerInfo = None
         self.rawEntries = list()
 
         #Serial thread
         self.serialListenerThread = serialThread(1, "SerialListener")
+        self.serialListenerThread.isDebugging = self.isDebugging
         self.serialListenerThread.addRawEntrySignal[list].connect(self.addRawEntry)
         self.serialListenerThread.closedSignal.connect(self.serialThreadClosed)
         self.serialListenerThread.gotHeaderSignal[dict].connect(self.serialThreadGotHeader)
@@ -148,7 +168,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.processQueue = queue.Queue()
 
 
+
+
     def setupCallbacks(self):
+        self.ui.savePushButton.clicked.connect(self.saveButtonCallback)
+        self.ui.openPushButton.clicked.connect(self.openButtonCallback)
         self.ui.targetComConnectButton.clicked.connect(self.establishConnection)
         self.ui.targetComCB.currentIndexChanged.connect(self.changeCOMCB)
 
@@ -192,17 +216,44 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def establishConnection(self):
         if self._isConnected:
             self.closeSerialThread()
+        elif not self.currentDataSaved and self.showSaveWarning:
+
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setText("Unsaved Data will be lost!")
+            msg.setInformativeText("Latest data was not saved, are you sure you want to start again?")
+            msg.setWindowTitle("Conflict warning!")
+            msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            if self.showSaveWarning:
+                cb = QtWidgets.QCheckBox("Don't show again")
+                msg.setCheckBox(cb)
+            retval = msg.exec_()
+            if retval == 0x4000:
+                self.comlist_qtimer.stop()
+                self.rawEntries = []
+                self.startSerialThread()
+                # Getting data from serial stream
+                self.openFileFlag = False
+                self.currentDataSaved = False
+                self.removeGraphTabs()
+            if self.showSaveWarning:
+                if cb.checkState():
+                    self.showSaveWarning = False
         else:
             self.comlist_qtimer.stop()
             self.rawEntries = []
             self.startSerialThread()
+            # Getting data from serial stream
+            self.openFileFlag = False
+            self.currentDataSaved = False
+            self.removeGraphTabs()
 
     def startSerialThread(self):
-        # Signal from Thread
 
         self.serialListenerThread.setPort(self.serialCOM)
         self.serialListenerThread.start()
         self.ui.targetComConnectButton.setEnabled(False)
+
 
     def closeSerialThread(self):
         # Set event flag to close thread
@@ -214,9 +265,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.targetComConnectButton.setEnabled(True)
         self.ui.targetComConnectButton.setText("Connect")
         self.comlist_qtimer.start(self.comlist_qtimer_interval)
-        self.exportRawData()
-        #Stop Plot update timer
-        #self.guiupdate_qtimer.stop()
+        #Stop regular UI updates
+        self.guiupdate_qtimer.stop()
+        #self.exportRawData()
+        #Enable Save and Open
+        self.ui.savePushButton.setEnabled(True)
+        self.ui.openPushButton.setEnabled(True)
 
     def serialThreadGotHeader(self, header):
         #Setup tabs
@@ -228,6 +282,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.targetComConnectButton.setText("Disconnect")
         #Start Plot update timer
         self.guiupdate_qtimer.start()
+        #Disable Save and Open
+        self.ui.savePushButton.setEnabled(False)
+        self.ui.openPushButton.setEnabled(False)
 
     def addRawEntry(self, data):
         module = data[0]
@@ -254,12 +311,38 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self.graphsContainer[unit][type]['sensors'][sensor]['data'][inst] = (rawData[idx] / 1024.0) * 33.0
             elif type == "corrente":
                 self.graphsContainer[unit][type]['sensors'][sensor]['data'][inst] = (rawData[idx] / 1024.0) * 3.3
-            elif type == "rotações pulsos" or "rotações hall":
-                self.graphsContainer[unit][type]['sensors'][sensor]['data'][inst] = rawData[idx]
+            elif type == "rotações pulsos":
+                if 'lasttime' not in self.graphsContainer[unit][type]['sensors'][sensor]:
+                    self.graphsContainer[unit][type]['sensors'][sensor]['lasttime'] = None
+                if rawData[idx]:
+                    if self.graphsContainer[unit][type]['sensors'][sensor]['lasttime'] != None:
+                        self.graphsContainer[unit][type]['sensors'][sensor]['data'][inst] = 60/(8*((inst-self.graphsContainer[unit][type]['sensors'][sensor]['lasttime'])/1000.0))
+                        self.graphsContainer[unit][type]['sensors'][sensor]['lasttime'] = inst
+                    else:
+                        self.graphsContainer[unit][type]['sensors'][sensor]['data'][inst] = 0
+                        self.graphsContainer[unit][type]['sensors'][sensor]['lasttime'] = inst
+                else:
+                    self.graphsContainer[unit][type]['sensors'][sensor]['data'][inst] = 0
+            elif type == "rotações hall":
+                if 'lasttime' not in self.graphsContainer[unit][type]['sensors'][sensor]:
+                    self.graphsContainer[unit][type]['sensors'][sensor]['lasttime'] = None
+                if rawData[idx]:
+                    if self.graphsContainer[unit][type]['sensors'][sensor]['lasttime'] != None:
+                        self.graphsContainer[unit][type]['sensors'][sensor]['data'][inst] = 60/(8*((inst-self.graphsContainer[unit][type]['sensors'][sensor]['lasttime'])/1000.0))
+                        self.graphsContainer[unit][type]['sensors'][sensor]['lasttime'] = inst
+                    else:
+                        self.graphsContainer[unit][type]['sensors'][sensor]['data'][inst] = 0
+                        self.graphsContainer[unit][type]['sensors'][sensor]['lasttime'] = inst
+                else:
+                    self.graphsContainer[unit][type]['sensors'][sensor]['data'][inst] = 0
             else:
                 self.graphsContainer[unit][type]['sensors'][sensor]['data'][inst] = rawData[idx]
 
         self.graphsContainer[unit][type]['sensors'][sensor]['pos'] = inst
+
+    def removeGraphTabs(self):
+        for i in range(self.ui.slaveTabWidget.count(), 0, -1):
+            self.ui.slaveTabWidget.removeTab(i)
 
     def setupGraphTabs(self):
         self.modules_list = []
@@ -269,8 +352,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         for module in self.modules_list:
 
             #Setup Tab
-
-            print(module)
+            if self.isDebugging:
+                print(module)
             unit = module.getUnit()
             self.tabContainer[unit] = {}
             self.tabContainer[unit]['widget'] = QtGui.QWidget()
@@ -290,6 +373,23 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 cb_groupbox.setLayout(cb_h_layout)
                 self.tabContainer[unit]['groupboxlayout'].addWidget(cb_groupbox)
 
+            cb_groupbox = QtWidgets.QGroupBox("X min - X max")
+            cb_h_layout = QtWidgets.QHBoxLayout()
+
+            self.tabContainer[unit]['xmin'] = QtWidgets.QSpinBox()
+            self.tabContainer[unit]['xmin'].setRange(0, 60000)
+            self.tabContainer[unit]['xmin'].valueChanged[int].connect(self.xminCB)
+            cb_h_layout.addWidget(self.tabContainer[unit]['xmin'])
+
+            self.tabContainer[unit]['xmax'] = QtWidgets.QSpinBox()
+            self.tabContainer[unit]['xmax'].setRange(1, 60000)
+            self.tabContainer[unit]['xmax'].valueChanged[int].connect(self.xmaxCB)
+            cb_h_layout.addWidget(self.tabContainer[unit]['xmax'])
+
+            cb_groupbox.setLayout(cb_h_layout)
+
+            self.tabContainer[unit]['groupboxlayout'].addWidget(cb_groupbox)
+
             self.tabContainer[unit]['tablayout'].addLayout(self.tabContainer[unit]['groupboxlayout'], 9, 0, 1, -1)
 
             self.tabContainer[unit]['graphicsview'] = GraphicsLayoutWidget(self)
@@ -299,21 +399,22 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.tabContainer[unit]['widget'].setLayout(self.tabContainer[unit]['tablayout'])
 
             #Setup Plots
-            self.graphsContainer[unit] = {}
-            for type in sensor_list:
-                self.graphsContainer[unit][type] = {}
-                self.graphsContainer[unit][type]['sensors'] = {}
-                self.graphsContainer[unit][type]['units'] = module.typeToUnits(type)
-                for sensor in sensor_list[type]:
+            if not self.openFileFlag:
+                self.graphsContainer[unit] = {}
+                for type in sensor_list:
+                    self.graphsContainer[unit][type] = {}
+                    self.graphsContainer[unit][type]['sensors'] = {}
+                    self.graphsContainer[unit][type]['units'] = module.typeToUnits(type)
+                    for sensor in sensor_list[type]:
 
-                    self.graphsContainer[unit][type]['sensors'][sensor] = {}
-                    self.graphsContainer[unit][type]['sensors'][sensor]['display'] = True
-                    self.graphsContainer[unit][type]['sensors'][sensor]['time'] = np.empty(60000, dtype=np.single)
-                    self.graphsContainer[unit][type]['sensors'][sensor]['time'].fill(np.nan)
-                    self.graphsContainer[unit][type]['sensors'][sensor]['data'] = np.empty(60000, dtype=np.single)
-                    self.graphsContainer[unit][type]['sensors'][sensor]['data'].fill(np.nan)
-                    self.graphsContainer[unit][type]['sensors'][sensor]['pos'] = 0
-                    self.graphsContainer[unit][type]['sensors'][sensor]['plot'] = None
+                        self.graphsContainer[unit][type]['sensors'][sensor] = {}
+                        self.graphsContainer[unit][type]['sensors'][sensor]['display'] = True
+                        self.graphsContainer[unit][type]['sensors'][sensor]['time'] = np.empty(60000, dtype=np.single)
+                        self.graphsContainer[unit][type]['sensors'][sensor]['time'].fill(np.nan)
+                        self.graphsContainer[unit][type]['sensors'][sensor]['data'] = np.empty(60000, dtype=np.single)
+                        self.graphsContainer[unit][type]['sensors'][sensor]['data'].fill(np.nan)
+                        self.graphsContainer[unit][type]['sensors'][sensor]['pos'] = 0
+                        self.graphsContainer[unit][type]['sensors'][sensor]['plot'] = None
 
             self.graphViewSetup(unit)
 
@@ -323,7 +424,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         tab = gb.parent().parent().parent()
         unit = tab.tabText(tab.currentIndex())
         type = ch.parent().title()
+
         sensor = int(ch.text(), 16)
+
         if state == 2:
 
             self.graphsContainer[unit][type]['sensors'][sensor]['display'] = True
@@ -332,7 +435,21 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.graphsContainer[unit][type]['sensors'][sensor]['display'] = False
 
         self.graphViewSetup(unit)
-        print(state, ch.text(), ch.parent().title(), tab.tabText(tab.currentIndex()))
+        if self.isDebugging:
+            print(state, ch.text(), ch.parent().title(), tab.tabText(tab.currentIndex()))
+        self.updatePlots()
+
+    def xminCB(self, value):
+        self.xmin = value
+        for unit in self.graphsContainer:
+            for type in self.graphsContainer[unit]:
+                self.graphsContainer[unit][type]['plot'].setXRange(self.xmin, self.xmax)
+
+    def xmaxCB(self, value):
+        self.xmax = value
+        for unit in self.graphsContainer:
+            for type in self.graphsContainer[unit]:
+                self.graphsContainer[unit][type]['plot'].setXRange(self.xmin, self.xmax)
 
     def graphViewSetup(self, unit):
         self.tabContainer[unit]['graphicsview'].clear()
@@ -374,6 +491,163 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     else:
                         continue
 
+    def saveButtonCallback(self):
+
+        if self.ui.notaLineEdit.text() == '':
+            preName = "V" + self.ui.veiculoLineEdit.text() + "_" + self.ui.velocidadeLineEdit.text() + "_" + self.ui.superficieLineEdit.text()
+        else:
+            preName = "V" + self.ui.vehSaveEdit.text() + "_" + self.ui.velSaveEdit.text() + "_" + self.ui.surSaveEdit.text() + "_" + self.ui.notaLineEdit.text()
+
+        preName = preName + "_" + datetime.datetime.now().strftime("%Y-%m-%d")
+        text, ok = QtWidgets.QInputDialog.getText(self, 'Save Folder Name Dialog', 'Save Data Folder to:', text=preName)
+        folder = str(text)
+        if ok:
+            if folder in os.listdir(self.DataFolderPath):
+                msg = QtWidgets.QMessageBox()
+                msg.setIcon(QtWidgets.QMessageBox.Warning)
+                msg.setText("Data Folder already exists with the same name!")
+                msg.setInformativeText("Are you sure you want to overwrite it?")
+                msg.setWindowTitle("Conflict warning!")
+                msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+                retval = msg.exec_()
+                if retval == 0x4000:
+                    self.saveFiles(folder)
+                    return
+                elif retval == 0x10000:
+                    self.saveButtonCallback()
+            else:
+                os.mkdir(self.DataFolderPath + "/" + folder)
+                self.saveFiles(folder)
+
+    def convertJsonToProcessedData(self, processedjson):
+
+        for unit in processedjson:
+            for type in processedjson[unit]:
+                for sensor in processedjson[unit][type]['sensors']:
+                    processedjson[unit][type]['sensors'][int(sensor)] = processedjson[unit][type]['sensors'].pop(sensor)
+                    processedjson[unit][type]['sensors'][int(sensor)]['time'] = np.array(processedjson[unit][type]['sensors'][int(sensor)]['time'])
+                    processedjson[unit][type]['sensors'][int(sensor)]['data'] = np.array(processedjson[unit][type]['sensors'][int(sensor)]['data'])
+
+        return processedjson
+
+    def convertProcessedDataToJson(self, processed):
+
+        for unit in processed:
+            for type in processed[unit]:
+                processed[unit][type]['plot'] = None
+                for sensor in processed[unit][type]['sensors']:
+                    processed[unit][type]['sensors'][sensor]['plot'] = None
+
+        return processed
+
+    def saveFiles(self, folder):
+
+        headerpath = self.DataFolderPath + "/" + folder + "/header.json"
+        rawpath = self.DataFolderPath + "/" + folder + "/raw.json"
+        processedpath = self.DataFolderPath + "/" + folder + "/processed.json"
+
+        with open(headerpath, 'w') as outfile:
+            json.dump(self.headerInfo, outfile, indent=4)
+        with open(rawpath, 'w') as outfile:
+            json.dump(self.rawEntries, outfile, indent=4)
+        processed = self.convertProcessedDataToJson(self.graphsContainer)
+        with open(processedpath, 'w') as outfile:
+            json.dump(processed, outfile, indent=4, cls=NumpyEncoder)
+
+        self.currentDataSaved = True
+
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setText("File save successfully!")
+        msg.setWindowTitle("File Saved")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        msg.exec_()
+
+    def openButtonCallback(self):
+        items = os.listdir(self.DataFolderPath)
+
+        folder, ok = QtWidgets.QInputDialog.getItem(self, 'Open Folder Name Dialog',
+                                                    "Open Data Folder:", items, 0, False)
+
+        if ok and folder:
+            if not self.currentDataSaved and self.showSaveWarning:
+                msg = QtWidgets.QMessageBox()
+                msg.setIcon(QtWidgets.QMessageBox.Warning)
+                msg.setText("Unsaved Data will be lost!")
+                msg.setInformativeText("Are you sure you want to open?")
+                msg.setWindowTitle("Conflict warning!")
+                msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+                if self.showOpenWarnign:
+                    cb = QtWidgets.QCheckBox("Don't show again")
+                    msg.setCheckBox(cb)
+                retval = msg.exec_()
+                if self.showOpenWarnign:
+                    if cb.checkState():
+                        self.showOpenWarnign = False
+                if retval == 0x4000:
+                    self.openFiles(folder)
+            else:
+                self.openFiles(folder)
+
+    def openFiles(self, folder):
+        headerpath = self.DataFolderPath + "/" + folder + "/header.json"
+        rawpath = self.DataFolderPath + "/" + folder + "/raw.json"
+        processedpath = self.DataFolderPath + "/" + folder + "/processed.json"
+
+        try:
+            with open(headerpath) as json_file:
+                self.headerInfo = json.load(json_file)
+        except Exception as e:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Information)
+            msg.setText("Failed to Opened successfully!")
+            msg.setWindowTitle("File not opened")
+            msg.setDetailedText(str(e))
+            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msg.exec_()
+            return
+
+        try:
+            with open(rawpath) as json_file:
+                self.rawEntries = json.load(json_file)
+        except Exception as e:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Information)
+            msg.setText("Failed to Opened successfully!")
+            msg.setWindowTitle("File not opened")
+            msg.setDetailedText(str(e))
+            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msg.exec_()
+            return
+
+        try:
+            with open(processedpath) as json_file:
+                processedjson = json.load(json_file)
+            self.graphsContainer = self.convertJsonToProcessedData(processedjson)
+        except Exception as e:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Information)
+            msg.setText("Failed to Opened successfully!")
+            msg.setWindowTitle("File not opened")
+            msg.setDetailedText(str(e))
+            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msg.exec_()
+            return
+
+        self.openFileFlag = True
+        self.currentDataSaved = True
+        self.guiupdate_qtimer.start()
+        self.removeGraphTabs()
+        self.setupGraphTabs()
+
+
+
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setText("File Opened successfully!")
+        msg.setWindowTitle("File Opened")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        msg.exec_()
 
     def exportRawData(self):
         container = {}
@@ -394,7 +668,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         name = self.ui.veiculoLineEdit.text() + "_" + self.ui.velocidadeLineEdit.text() + "_" + self.ui.superficieLineEdit.text() + "_" + self.ui.notaLineEdit.text() + ".txt"
         with open(name, 'w') as file:
-            print(maxlen)
+            if self.isDebugging:
+                print(maxlen)
             header = ""
             for key in container.keys():
                 header = header + "S" + str(key) + " t "
@@ -411,12 +686,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 file.write(line)
 
 
-def main():
+def main(argv):
     app = QtWidgets.QApplication(sys.argv)
-    application = ApplicationWindow()
+    application = ApplicationWindow(argv[0])
     application.show()
     sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

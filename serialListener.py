@@ -10,7 +10,8 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
 
 
-def processWorker(item):
+def processWorker(item, isDebugging):
+    item = item[0]
     slave_pos = item[4]
     sensor_pos = item[5]
     # print("Slave_pos", slave_pos)
@@ -22,13 +23,17 @@ def processWorker(item):
     data = item[8:8+nBytesd]
     # print("data", data)
     if item[8+nBytesd:12+nBytesd] != b"TIME":
-        print("TIME stamp not where expected")
+        if isDebugging:
+            print(item)
+            print("\nTIME stamp not where expected")
         return 1
 
     sizeT = item[12+nBytesd:14+nBytesd]
     # print("sizeT", sizeT)
     if sizeD != sizeT:
-        print("Length of data and time differs")
+        if isDebugging:
+            print(item)
+            print("Length of data and time differs")
         return 1
 
     nBytest = (sizeT[0] + sizeT[1] * 256) * 2
@@ -58,14 +63,13 @@ class serialThread (QThread):
         self._isRunning = True
         self.threadID = threadID
         self.name = name
-
+        self.isDebugging = False
         self.setupSerialConnection()
 
         self._serialincdata = bytes()
         self.reData = re.compile(b"DATA")
         self.reEnd = re.compile(b"END")
         self.reTime = re.compile(b"TIME")
-
         if os.cpu_count()<=8:
             self.corecount = ceil(os.cpu_count()/2)
         else:
@@ -94,7 +98,8 @@ class serialThread (QThread):
         packet.append(0x42)
         nbyte = self.serialConnection.write(packet)
         self.config = {}
-        print("Starting read...",nbyte)
+        if self.isDebugging:
+            print("Starting read...",nbyte)
         startline = self.serialConnection.readline()
         #print(startline)
         if(startline != b"start\n"):
@@ -103,15 +108,20 @@ class serialThread (QThread):
         #print(nSlaves)
         for n1 in range(nSlaves):
             address = self.serialConnection.read(1)[0]
-            print(address, "address")
+            if self.isDebugging:
+                print(address, "address")
             microprocessor = self.serialConnection.read(1)[0]
-            print(microprocessor, "microprocessor")
+            if self.isDebugging:
+                print(microprocessor, "microprocessor")
             status = self.serialConnection.read(1)[0]
-            print(status, "status")
+            if self.isDebugging:
+                print(status, "status")
             position_m = self.serialConnection.read(1)[0]
-            print(position_m, "position_m")
+            if self.isDebugging:
+                print(position_m, "position_m")
             unit = self.serialConnection.read(1)[0]
-            print(unit, "unit")
+            if self.isDebugging:
+                print(unit, "unit")
 
             self.config[position_m] = {}
             self.config[position_m]['address'] = address
@@ -121,17 +131,22 @@ class serialThread (QThread):
             self.config[position_m]['unit'] = unit
             self.config[position_m]['sensors'] = {}
             nSensors = self.serialConnection.read(1)[0]
-            print(nSensors, "nSensors")
+            if self.isDebugging:
+                print(nSensors, "nSensors")
             for n2 in range(nSensors):
                 function = self.serialConnection.read(1)[0]
-                print(function, "function nSensors")
+                if self.isDebugging:
+                    print(function, "function nSensors")
                 status = self.serialConnection.read(1)[0]
-                print(status, "status nSensors")
+                if self.isDebugging:
+                    print(status, "status nSensors")
                 restval_byte = self.serialConnection.read(2)
                 restval = restval_byte[0] + restval_byte[1]*256
-                print(restval, "restval nSensors")
+                if self.isDebugging:
+                    print(restval, "restval nSensors")
                 position_s = self.serialConnection.read(1)[0]
-                print(position_s, "position_s")
+                if self.isDebugging:
+                    print(position_s, "position_s")
                 self.config[position_m]['sensors'][position_s] = {}
                 self.config[position_m]['sensors'][position_s]["function"] = function
                 self.config[position_m]['sensors'][position_s]["status"] = status
@@ -153,20 +168,24 @@ class serialThread (QThread):
 
             # Check if Slave exists in DB
             if slave_pos not in self.config:
-                print("Skipped because slave:", slave_pos, "doesnt exist in setup")
+                if self.isDebugging:
+                    print("Skipped because slave:", slave_pos, "doesnt exist in setup")
                 return  # Skip if slave doesnt exist in setup
             # Check if Sensor exists in DB
             if sensor_pos not in self.config[slave_pos]["sensors"]:
-                print("Skipped because sensor:", sensor_pos, " doesnt exist in setup")
+                if self.isDebugging:
+                    print("Skipped because sensor:", sensor_pos, " doesnt exist in setup")
                 return  # Skip if sensor doesnt exist in setup
             if 'entries' not in self.config[slave_pos]["sensors"][sensor_pos]:
                 self.config[slave_pos]["sensors"][sensor_pos]['entries'] = []
 
-            currentid = len(self.config[slave_pos]["sensors"][sensor_pos]['entries'])
+            #Warning: Will increase header file size consideratly
+            if self.isDebugging:
+                currentid = len(self.config[slave_pos]["sensors"][sensor_pos]['entries'])
 
-            newEntry = {'id': currentid, 'size': len(sData), 'data': sData, 'time': sTime}
+                newEntry = {'id': currentid, 'size': len(sData), 'data': sData, 'time': sTime}
 
-            self.config[slave_pos]["sensors"][sensor_pos]['entries'].append(newEntry)
+                self.config[slave_pos]["sensors"][sensor_pos]['entries'].append(newEntry)
 
             self.addRawEntrySignal.emit([slave_pos, sensor_pos, sData, sTime])
 
@@ -176,7 +195,8 @@ class serialThread (QThread):
         try:
             self.serialConnection.open()
         except serial.serialutil.SerialException as e:
-            print(e)
+            if self.isDebugging:
+                print(e)
         tries = 0
         if(self.serialConnection.is_open):
             while self.getHeader():
@@ -184,7 +204,8 @@ class serialThread (QThread):
                 self.serialConnection.close()
                 self.serialConnection.open()
                 if(tries>5):
-                    print("Failed to read header after",tries,"times.")
+                    if self.isDebugging:
+                        print("Failed to read header after",tries,"times.")
                     self._isRunning = False
                     break
 
@@ -192,13 +213,13 @@ class serialThread (QThread):
                 self.gotHeaderSignal.emit(self.config)
                 self._serialincdata = bytes()
                 self.processPool = multiprocessing.Pool(self.corecount)
-                print("Succeeded to read header after", tries, "times.")
+                if self.isDebugging:
+                    print("Succeeded to read header after", tries, "times.")
                 while self._isRunning:
                     entry = 1
                     availablebytes = self.serialConnection.in_waiting
                     if availablebytes:
                         newdata = self.serialConnection.read(availablebytes)
-                        #print(newdata)
                         self._serialincdata = self._serialincdata + newdata
                     endpos = self.reEnd.search(self._serialincdata)
 
@@ -206,7 +227,7 @@ class serialThread (QThread):
                         datapos = self.reData.search(self._serialincdata)
                         inputdata = [self._serialincdata[datapos.start():endpos.end()]]
                         self._serialincdata = self._serialincdata[endpos.end():]
-                        self.processPool.apply_async(processWorker, args=inputdata, callback=self.workerFinishedCB)
+                        self.processPool.apply_async(processWorker, args=(inputdata, self.isDebugging), callback=self.workerFinishedCB)
                     QtWidgets.QApplication.processEvents()
 
             self.serialConnection.close()
@@ -217,7 +238,7 @@ class serialThread (QThread):
                     datapos = self.reData.search(self._serialincdata)
                     inputdata = [self._serialincdata[datapos.start():endpos.end()]]
                     self._serialincdata = self._serialincdata[endpos.end():]
-                    self.processPool.apply_async(processWorker, args=inputdata, callback=self.workerFinishedCB)
+                    self.processPool.apply_async(processWorker, args=(inputdata, self.isDebugging), callback=self.workerFinishedCB)
                 else:
                     break
             self.processPool.close()
