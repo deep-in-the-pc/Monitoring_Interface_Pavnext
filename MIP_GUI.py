@@ -137,8 +137,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.setupCallbacks()
         self.setupTimers()
 
-        #Todo fill main tab module information from header
-
     def setupVariables(self):
 
         #UI

@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'monitoring_interface_04.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.13.0
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -71,42 +73,6 @@ class Ui_MainWindow(object):
         self.openPushButton.setObjectName("openPushButton")
         self.horizontalLayout_7.addWidget(self.openPushButton)
         self.verticalLayout_3.addLayout(self.horizontalLayout_7)
-        self.widget = QtWidgets.QWidget(self.Info)
-        self.widget.setGeometry(QtCore.QRect(320, 330, 788, 215))
-        self.widget.setObjectName("widget")
-        self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self.widget)
-        self.horizontalLayout_8.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_8.setObjectName("horizontalLayout_8")
-        self.verticalLayout_6 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_6.setObjectName("verticalLayout_6")
-        self.label_6 = QtWidgets.QLabel(self.widget)
-        self.label_6.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_6.setObjectName("label_6")
-        self.verticalLayout_6.addWidget(self.label_6)
-        self.moduleListWidget = QtWidgets.QListWidget(self.widget)
-        self.moduleListWidget.setObjectName("moduleListWidget")
-        self.verticalLayout_6.addWidget(self.moduleListWidget)
-        self.horizontalLayout_8.addLayout(self.verticalLayout_6)
-        self.verticalLayout_5 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.label_7 = QtWidgets.QLabel(self.widget)
-        self.label_7.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_7.setObjectName("label_7")
-        self.verticalLayout_5.addWidget(self.label_7)
-        self.moduleInfoListWidget = QtWidgets.QListWidget(self.widget)
-        self.moduleInfoListWidget.setObjectName("moduleInfoListWidget")
-        self.verticalLayout_5.addWidget(self.moduleInfoListWidget)
-        self.horizontalLayout_8.addLayout(self.verticalLayout_5)
-        self.verticalLayout_4 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.label_8 = QtWidgets.QLabel(self.widget)
-        self.label_8.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_8.setObjectName("label_8")
-        self.verticalLayout_4.addWidget(self.label_8)
-        self.sensorInfoListWidget = QtWidgets.QListWidget(self.widget)
-        self.sensorInfoListWidget.setObjectName("sensorInfoListWidget")
-        self.verticalLayout_4.addWidget(self.sensorInfoListWidget)
-        self.horizontalLayout_8.addLayout(self.verticalLayout_4)
         self.slaveTabWidget.addTab(self.Info, "")
         self.verticalLayout_2.addWidget(self.slaveTabWidget)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
@@ -150,9 +116,6 @@ class Ui_MainWindow(object):
         self.label_5.setText(_translate("MainWindow", "Nota:"))
         self.savePushButton.setText(_translate("MainWindow", "Save"))
         self.openPushButton.setText(_translate("MainWindow", "Open"))
-        self.label_6.setText(_translate("MainWindow", "Module"))
-        self.label_7.setText(_translate("MainWindow", "Module Information"))
-        self.label_8.setText(_translate("MainWindow", "Sensor Information"))
         self.slaveTabWidget.setTabText(self.slaveTabWidget.indexOf(self.Info), _translate("MainWindow", "Info"))
         self.connectionStatusLabel.setText(_translate("MainWindow", "Connection Status: Offline"))
         self.label_2.setText(_translate("MainWindow", "Target COM:"))
@@ -167,4 +130,3 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
-

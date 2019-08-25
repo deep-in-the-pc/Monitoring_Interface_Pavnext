@@ -110,69 +110,6 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="">
-        <property name="geometry">
-         <rect>
-          <x>320</x>
-          <y>330</y>
-          <width>788</width>
-          <height>215</height>
-         </rect>
-        </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_8">
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_6">
-           <item>
-            <widget class="QLabel" name="label_6">
-             <property name="text">
-              <string>Module</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QListWidget" name="moduleListWidget"/>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_5">
-           <item>
-            <widget class="QLabel" name="label_7">
-             <property name="text">
-              <string>Module Information</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QListWidget" name="moduleInfoListWidget"/>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QVBoxLayout" name="verticalLayout_4">
-           <item>
-            <widget class="QLabel" name="label_8">
-             <property name="text">
-              <string>Sensor Information</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QListWidget" name="sensorInfoListWidget"/>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </widget>
       </widget>
      </widget>
     </item>
