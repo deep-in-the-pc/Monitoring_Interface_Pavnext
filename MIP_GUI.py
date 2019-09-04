@@ -503,7 +503,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         if self.ui.notaLineEdit.text() == '':
             preName = "V" + self.ui.veiculoLineEdit.text() + "_" + self.ui.velocidadeLineEdit.text() + "_" + self.ui.superficieLineEdit.text()
         else:
-            preName = "V" + self.ui.vehSaveEdit.text() + "_" + self.ui.velSaveEdit.text() + "_" + self.ui.surSaveEdit.text() + "_" + self.ui.notaLineEdit.text()
+            preName = "V" + self.ui.veiculoLineEdit.text() + "_" + self.ui.velocidadeLineEdit.text() + "_" + self.ui.superficieLineEdit.text() + "_" + self.ui.notaLineEdit.text()
 
         preName = preName + "_" + datetime.datetime.now().strftime("%Y-%m-%d")
         text, ok = QtWidgets.QInputDialog.getText(self, 'Save Folder Name Dialog', 'Save Data Folder to:', text=preName)
