@@ -19,7 +19,7 @@ try:
 except ImportError:
     QString = str
 from PyQt5.QtCore import QThread, pyqtSignal
-from gui.MI_GUI_04 import Ui_MainWindow
+from GUI.MI_GUI_04 import Ui_MainWindow
 from pyqtgraph import *
 
 class NumpyEncoder(json.JSONEncoder):
@@ -441,15 +441,19 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def xminCB(self, value):
         self.xmin = value
+        if self.xmin >= self.xmax:
+            self.xmax = self.xmin+1
         for unit in self.graphsContainer:
-            for type in self.graphsContainer[unit]:
-                self.graphsContainer[unit][type]['plot'].setXRange(self.xmin, self.xmax)
+            for typeV in self.graphsContainer[unit]:
+                if not type(self.graphsContainer[unit][typeV]['plot']) is type(None):
+                    self.graphsContainer[unit][typeV]['plot'].setXRange(self.xmin, self.xmax)
 
     def xmaxCB(self, value):
         self.xmax = value
         for unit in self.graphsContainer:
-            for type in self.graphsContainer[unit]:
-                self.graphsContainer[unit][type]['plot'].setXRange(self.xmin, self.xmax)
+            for typeV in self.graphsContainer[unit]:
+                if not type(self.graphsContainer[unit][typeV]['plot']) is type(None):
+                    self.graphsContainer[unit][typeV]['plot'].setXRange(self.xmin, self.xmax)
 
     def graphViewSetup(self, unit):
         self.tabContainer[unit]['graphicsview'].clear()
