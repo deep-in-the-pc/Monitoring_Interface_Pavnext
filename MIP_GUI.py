@@ -128,7 +128,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         setConfigOption('foreground', 'k')
 
         #Debugging
-        self.isDebugging = debugging
+        if debugging == 'True':
+            self.isDebugging = True
+        else:
+            self.isDebugging = False
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
